@@ -21,6 +21,8 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
             result(nil)
         case "getReceiptBase64":
             getReceiptBase64(result: result)
+        case "getSkarbDeviceId":
+            result(getSkarbDeviceId())
         case "initialize":
             SkarbSDK.isLoggingEnabled = true
             var deviceId: String? = nil
@@ -148,6 +150,10 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
         } else {
             result(nil)
         }
+    }
+
+    private func getSkarbDeviceId() -> String {
+        return SkarbSDK.getDeviceId()
     }
 
     private func errorDescription(_ error: Error) -> String {

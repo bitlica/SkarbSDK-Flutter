@@ -35,6 +35,13 @@ class SkarbPlugin {
     return await _channel.invokeMethod('getReceiptBase64');
   }
 
+  static Future<String?> getSkarbDeviceId() async {
+    if (Platform.isAndroid) {
+      return null;
+    }
+    return await _channel.invokeMethod('getSkarbDeviceId');
+  }
+
   static Future<void> initialize({
     required String? deviceId,
     required String revenueCatGoogleKey,
