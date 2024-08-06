@@ -6,6 +6,8 @@ import 'package:flutter_keychain/flutter_keychain.dart';
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart' as rc;
 import 'package:skarb_plugin/country_codes.dart';
+import 'package:skarb_plugin/purchase_info.dart';
+import 'package:skarb_plugin/purchase_result.dart';
 import 'package:skarb_plugin/skarb_exception.dart';
 import 'package:skarb_plugin/skarb_logger.dart';
 import 'package:skarb_plugin/skarb_offerings.dart';
@@ -179,7 +181,8 @@ class SkarbPlugin {
     return false;
   }
 
-  static Future<void> fetchUserPurchasesInfo() async {
+  /// Method may throw a SkarbException
+  static Future<SkarbPurchaseInfo?> fetchUserPurchasesInfo() async {
     logger?.logEvent(
       eventType: SkarbEventType.info,
       message: 'fetchUserPurchasesInfo',
@@ -198,6 +201,7 @@ class SkarbPlugin {
           fetchUserPurchasesInfo();
         });
       }
+      return SkarbPurchaseInfoAndroid();
     } else if (Platform.isIOS) {
       final result = await _channel.invokeMethod('fetchUserPurchasesInfo');
       if (result is String) {
@@ -205,12 +209,24 @@ class SkarbPlugin {
           eventType: SkarbEventType.error,
           message: 'fetchUserPurchasesInfo error $result',
         );
+        throw SkarbException(result, 'FETCH_PURCHASE_ERROR');
       } else {
         logger?.logEvent(
           eventType: SkarbEventType.info,
           message: 'fetchUserPurchasesInfo success',
         );
+        try {
+          return SkarbPurchaseInfoIOS.fromJson(
+              Map<String, dynamic>.from(result));
+        } catch (_) {
+          throw SkarbException('result parsing error', 'PARSING_ERROR');
+        }
       }
+    } else {
+      throw SkarbException(
+        'Unsupported platform',
+        'INTERNAL_UNSUPPORTED_ERROR',
+      );
     }
   }
 
@@ -368,7 +384,7 @@ class SkarbPlugin {
   /// For pending purchases, the app should watch for the payment status change
   ///
   /// returns false when purchase is cancelled
-  static Future<bool> purchasePackage(String packageName) async {
+  static Future<SkarbPurchaseResult> purchasePackage(String packageName) async {
     logger?.logEvent(
       eventType: SkarbEventType.info,
       message: "purchase $packageName",
@@ -419,7 +435,7 @@ class SkarbPlugin {
             eventType: SkarbEventType.info,
             message: 'purchase $packageName cancelled',
           );
-          return false;
+          return SkarbPurchaseResultCancelled();
         }
         logger?.logEvent(
           eventType: SkarbEventType.error,
@@ -435,27 +451,30 @@ class SkarbPlugin {
           'PURCHASE_ERROR',
         );
       }
-      return true;
+      return SkarbPurchaseResultSuccess(SkarbPurchaseInfoAndroid());
     } else if (Platform.isIOS) {
       final result =
           await _channel.invokeMethod('purchasePackage', {'name': packageName});
-      if (result is bool) {
-        logger?.logEvent(
-          eventType: SkarbEventType.info,
-          message: "purchase $packageName success: $result",
-        );
-        return result;
-      }
       if (result is Map<dynamic, dynamic>) {
-        SkarbException exception = SkarbException.fromJson(result);
-        if (exception.code == 'PAYMENT_CANCELLED') {
-          return false;
+        if (result['errorCode'] != null) {
+          SkarbException exception = SkarbException.fromJson(result);
+          if (exception.code == 'PAYMENT_CANCELLED') {
+            return SkarbPurchaseResultCancelled();
+          }
+          logger?.logEvent(
+            eventType: SkarbEventType.error,
+            message: '${exception.code}: ${exception.message}',
+          );
+          throw exception;
+        } else {
+          try {
+            return SkarbPurchaseResultSuccess(
+              SkarbPurchaseInfoIOS.fromJson(Map<String, dynamic>.from(result)),
+            );
+          } catch (_) {
+            throw SkarbException('result parsing error', 'PARSING_ERROR');
+          }
         }
-        logger?.logEvent(
-          eventType: SkarbEventType.error,
-          message: '${exception.code}: ${exception.message}',
-        );
-        throw exception;
       } else {
         logger?.logEvent(
           eventType: SkarbEventType.error,
