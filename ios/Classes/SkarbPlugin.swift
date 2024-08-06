@@ -27,7 +27,7 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
             SkarbSDK.isLoggingEnabled = true
             var deviceId: String? = nil
             var lifetimePurchaseIdentifier: String? = nil
-            if let args = call.arguments as? [String: Any]{ 
+            if let args = call.arguments as? [String: Any] {
                 if let id = args["deviceId"] as? String {
                     deviceId = id
                 }
@@ -46,8 +46,8 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
         case "fetchUserPurchasesInfo":
             manager?.fetchUserPurchasesInfo(with: .always) { fetchResult in
                 switch fetchResult {
-                case .success:
-                    result(true)
+                case let .success(info):
+                    result(info.toJson())
                 case let .failure(error):
                     result(self.errorDescription(error))
                 }
@@ -95,7 +95,10 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
             }
         case "purchasePackage":
             guard let args = call.arguments as? [String: Any], let name = args["name"] as? String else {
-                result("incorrect args: \(call.arguments ?? "nil")")
+                result([
+                    "message": "incorrect args: \(call.arguments ?? "nil")",
+                    "errorCode": "INCORRECT_ARGS",
+                ])
                 return
             }
 
@@ -120,8 +123,8 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
                                        eventParams: [:])
                 { [weak self] purchaseResult in
                     switch purchaseResult {
-                    case .success:
-                        result(true)
+                    case let .success(info):
+                        result(info.toJson())
                     case let .failure(error):
                         result([
                             "message": self?.errorDescription(error),
@@ -202,12 +205,9 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
 }
 
 extension SkarbPlugin: BitlicaSkarbManagerDelegate {
-    public func storeKitUpdatedTransaction(_ updatedTransaction: SKPaymentTransaction) {
-    }
-    
-    public func storeKit(shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
+    public func storeKitUpdatedTransaction(_: SKPaymentTransaction) {}
+
+    public func storeKit(shouldAddStorePayment _: SKPayment, for _: SKProduct) -> Bool {
         return false
     }
-    
-
 }
