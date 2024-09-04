@@ -204,7 +204,6 @@ class SkarbPlugin {
       message: 'restorePurchases',
     );
     if (Platform.isAndroid) {
-      // await rc.Purchases.restorePurchases();
       await fetchUserPurchasesInfo();
     } else if (Platform.isIOS) {
       final result = await _channel.invokeMethod('restorePurchases');
