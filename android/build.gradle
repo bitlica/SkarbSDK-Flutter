@@ -57,5 +57,5 @@ android {
 }
 
 dependencies {
-    implementation('com.bitlica.skarbsdk:skarb:1.0.7') 
+    implementation('com.bitlica.skarbsdk:skarb:2.0.1')
 }
