@@ -13,8 +13,3 @@ class SkarbException {
     return 'SkarbException{message: $message, code: $code}';
   }
 }
-
-class SkarbPaymentPendingException extends SkarbException {
-  SkarbPaymentPendingException()
-      : super('The payment is pending', 'PAYMENT_PENDING');
-}

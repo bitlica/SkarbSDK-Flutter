@@ -34,6 +34,7 @@ class SKOfferings {
               packageJson['purchase_type'] as String),
           priceString: packageJson['price_string'] as String,
           weeklyPriceString: packageJson['weekly_price_string'] as String?,
+          dailyPriceString: packageJson['daily_price_string'] as String?,
           isTrial: packageJson['is_trial'] as bool,
         );
       }).toList();
@@ -96,6 +97,7 @@ class SKOfferPackage {
   final PurchaseType purchaseType;
   final String priceString;
   final String? weeklyPriceString;
+  final String? dailyPriceString;
   final bool isTrial;
 
   SKOfferPackage({
@@ -105,6 +107,7 @@ class SKOfferPackage {
     required this.purchaseType,
     required this.priceString,
     required this.weeklyPriceString,
+    required this.dailyPriceString,
     required this.isTrial,
   });
 }
