@@ -15,6 +15,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import java.sql.Timestamp
 import java.text.NumberFormat
 import java.util.Currency
 
@@ -146,18 +147,18 @@ class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             }
         }
     } else if (call.method == "isPremium") {
-        SkarbSDK.verifyPurchase(SKRefreshPolicy.MemoryCached) { purchasesResult ->
+        SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
             try {
-                val purchases = purchasesResult.getOrThrow()
-                val lifetime = purchases.oneTimePurchases.firstOrNull {
-                    it.productId == lifetimePurchaseIdentifier
-                }
-                val subscription = purchases.purchasedSubscriptions.firstOrNull {
-                    it.isActive && !it.isExpired
-                }
-                result.success(lifetime != null || subscription != null)
+               val purchases = purchasesResult.getOrThrow()
+               val lifetime = purchases.oneTimePurchases.firstOrNull {
+                   it.productId == lifetimePurchaseIdentifier
+               }
+               val subscription = purchases.purchasedSubscriptions.firstOrNull {
+                   it.isActive
+               }
+               result.success(lifetime != null || subscription != null)
             } catch (e: Exception) {
-                result.success(false)
+               result.success(false)
             }
         }
     } else if (call.method == "getRegionCode") {
@@ -254,7 +255,7 @@ class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                 mapOf(
                     "transactionID" to subscription.transactionId,
                     "originalTransactionID" to subscription.originalTransactionId,
-                    "expiryDate" to subscription.expiryDateMillis.toDouble() / 1000,
+                    "expiryDate" to subscription.expiryDate.time.toDouble() / 1000,
                     "productID" to subscription.productId,
                     "quantity" to subscription.quantity,
                     "introOfferPeriod" to subscription.introOfferPeriod,
@@ -265,7 +266,7 @@ class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
             "onetimePurchases" to purchaseInfo.oneTimePurchases.map { purchase ->
                 mapOf(
                     "transactionID" to purchase.transactionId,
-                    "purchaseDate" to purchase.purchaseDateMillis.toDouble() / 1000,
+                    "purchaseDate" to purchase.purchaseDate.time.toDouble() / 1000,
                     "productID" to purchase.productId,
                     "quantity" to purchase.quantity,
                 )

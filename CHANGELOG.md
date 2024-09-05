@@ -17,3 +17,7 @@ Reworked purchasePackage return type
 
 Removed RevenueCat dependency
 Using full native Skarb SDK for handling purchases on Android
+
+## 3.0.1
+
+Fixed isPremium on Android
