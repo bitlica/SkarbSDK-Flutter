@@ -21,3 +21,7 @@ Using full native Skarb SDK for handling purchases on Android
 ## 3.0.1
 
 Fixed isPremium on Android
+
+## 3.0.2
+
+Fix: calling consumePurchase after a onetime purchase on Android

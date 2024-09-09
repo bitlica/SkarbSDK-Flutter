@@ -115,6 +115,12 @@ class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                     try {
                         val purchase = purchaseResult.getOrThrow()
                         val json = purchaseInfoToJson(purchase)
+                        if (offering.purchaseType == com.bitlica.skarbsdk.model.PurchaseType.Consumable) {
+                            val token = purchase.oneTimePurchases.filter { it.productId == packageId }.maxBy { it.purchaseDate }.purchaseToken
+                            if (token != null) {
+                                SkarbSDK.consumePurchase(token)
+                            }
+                        }
                         result.success(json)
                     } catch (e: Exception) {
                         result.error(
