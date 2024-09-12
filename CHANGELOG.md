@@ -25,3 +25,7 @@ Fixed isPremium on Android
 ## 3.0.2
 
 Fix: calling consumePurchase after a onetime purchase on Android
+
+## 3.0.3
+
+Updated Android SDK to 2.0.3 version with some fixes
