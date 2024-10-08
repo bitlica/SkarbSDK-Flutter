@@ -29,3 +29,7 @@ Fix: calling consumePurchase after a onetime purchase on Android
 ## 3.0.3
 
 Updated Android SDK to 2.0.3 version with some fixes
+
+## 3.0.4
+
+Added androidClientKey to initialization
