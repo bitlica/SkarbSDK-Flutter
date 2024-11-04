@@ -33,3 +33,7 @@ Updated Android SDK to 2.0.3 version with some fixes
 ## 3.0.4
 
 Added androidClientKey to initialization
+
+## 3.0.5
+
+Added dailyPriceString calculation

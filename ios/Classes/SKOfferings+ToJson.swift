@@ -29,6 +29,19 @@ extension SKOffering {
 
 extension SKOfferPackage {
     func toJson() -> [String: Any] {
+        // TODO remove dailyPriceString calculation use new Skarb version 0.6.19 (call dailyLocalizedPriceString function) (start)
+        let multiplier = switch purchaseType {
+           case .weekly: 7
+           case .monthly: 30
+           case .yearly: 365
+           case .consumable: 1
+           case .nonConsumable: 1
+           case .unknown: 1
+        }
+
+        let dailyPriceString = localizedPriceWithMultiplier(1 / Double(multiplier));
+
+        // TODO remove dailyPriceString calculation use new Skarb version 0.6.19 (call dailyLocalizedPriceString function) (end)
         return [
             "id": id,
             "description": description,
@@ -36,6 +49,7 @@ extension SKOfferPackage {
             "purchase_type": purchaseType.toString(),
             "price_string": localizedPriceString,
             "weekly_price_string": weeklyLocalizedPriceString as Any,
+            "daily_price_string": dailyPriceString,
             "is_trial": isTrial
         ]
     }
