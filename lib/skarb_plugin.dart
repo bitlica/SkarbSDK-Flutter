@@ -10,42 +10,53 @@ import 'package:skarb_plugin/skarb_logger.dart';
 import 'package:skarb_plugin/skarb_offerings.dart';
 
 class SkarbPlugin {
-  static const MethodChannel _channel = MethodChannel('skarb_plugin');
+  static const MethodChannel _methodChannel = MethodChannel('skarb_plugin');
+  static const EventChannel _eventChannel =
+      EventChannel('observeUnconsumedOneTimePurchases');
 
   static SKOfferings? offerings;
   static SkarbLogger? logger;
+
+  static Stream<dynamic>? eventChannelHandler() {
+    if (Platform.isAndroid) {
+      return _eventChannel.receiveBroadcastStream();
+    }
+    return null;
+  }
 
   static Future<String?> getReceiptBase64() async {
     if (Platform.isAndroid) {
       return null;
     }
-    return await _channel.invokeMethod('getReceiptBase64');
+    return await _methodChannel.invokeMethod('getReceiptBase64');
   }
 
   static Future<String?> getSkarbDeviceId() async {
     if (Platform.isAndroid) {
-      return _channel.invokeMethod('getDeviceId');
+      return _methodChannel.invokeMethod('getDeviceId');
     }
-    return _channel.invokeMethod('getSkarbDeviceId');
+    return _methodChannel.invokeMethod('getSkarbDeviceId');
   }
 
   static Future<void> initialize({
     required String? deviceId,
     String? lifetimePurchaseIdentifier,
     String? androidClientKey,
+    String? amplitudeApiKey,
   }) async {
     logger?.logEvent(
       eventType: SkarbEventType.info,
       message: 'initialize',
     );
     if (Platform.isAndroid) {
-      await _channel.invokeMethod('initialize', {
+      await _methodChannel.invokeMethod('initialize', {
         'deviceId': deviceId,
         'lifetimePurchaseIdentifier': lifetimePurchaseIdentifier,
         'clientKey': androidClientKey ?? 'aifriendandroid',
+        if (amplitudeApiKey != null) 'amplitude_api_key': amplitudeApiKey,
       });
     } else if (Platform.isIOS) {
-      await _channel.invokeMethod('initialize', {
+      await _methodChannel.invokeMethod('initialize', {
         'deviceId': deviceId,
         'lifetimePurchaseIdentifier': lifetimePurchaseIdentifier,
       });
@@ -58,10 +69,11 @@ class SkarbPlugin {
 
   static Future<String?> getCountryCode() async {
     if (Platform.isIOS) {
-      return await _channel.invokeMethod('getCountryCode');
+      return await _methodChannel.invokeMethod('getCountryCode');
     } else if (Platform.isAndroid) {
       try {
-        final twoLetterCode = await _channel.invokeMethod('getRegionCode');
+        final twoLetterCode =
+            await _methodChannel.invokeMethod('getRegionCode');
         return countryCodes[twoLetterCode];
       } catch (e) {
         logger?.logEvent(
@@ -70,6 +82,14 @@ class SkarbPlugin {
         );
         return null;
       }
+    }
+    return null;
+  }
+
+  static Future<String?> observeUnconsumedOneTimePurchases() async {
+    if (Platform.isAndroid) {
+      return await _methodChannel
+          .invokeMethod('observeUnconsumedOneTimePurchases');
     }
     return null;
   }
@@ -85,33 +105,35 @@ class SkarbPlugin {
     });
 
     if (Platform.isAndroid) {
-      await _channel.invokeMethod('sendSource', {'features': info, 'uid': uid});
-      return _channel.invokeMethod('getDeviceId');
+      await _methodChannel
+          .invokeMethod('sendSource', {'features': info, 'uid': uid});
+      return _methodChannel.invokeMethod('getDeviceId');
     }
 
-    return await _channel
+    return await _methodChannel
         .invokeMethod('sendAFSource', {'conversionInfo': info, 'uid': uid});
   }
 
   static Future<String?> sendTest(String? name, String? group) async {
     if (Platform.isAndroid) {
-      await _channel.invokeMethod('sendTest', {'name': name, 'group': group});
+      await _methodChannel
+          .invokeMethod('sendTest', {'name': name, 'group': group});
       return '';
     }
-    return await _channel
+    return await _methodChannel
         .invokeMethod('sendTest', {'name': name, 'group': group});
   }
 
   static Future<bool> isPremium() async {
     if (Platform.isAndroid) {
-      final result = await _channel.invokeMethod('isPremium');
+      final result = await _methodChannel.invokeMethod('isPremium');
       logger?.logEvent(
         eventType: SkarbEventType.info,
         message: 'isPremium success: ${result == true}',
       );
       return result == true;
     } else if (Platform.isIOS) {
-      final result = await _channel.invokeMethod('isPremium');
+      final result = await _methodChannel.invokeMethod('isPremium');
       logger?.logEvent(
         eventType: SkarbEventType.info,
         message: 'isPremium success: ${result == true}',
@@ -130,7 +152,8 @@ class SkarbPlugin {
 
     if (Platform.isAndroid) {
       try {
-        final result = await _channel.invokeMethod('fetchUserPurchasesInfo');
+        final result =
+            await _methodChannel.invokeMethod('fetchUserPurchasesInfo');
         logger?.logEvent(
           eventType: SkarbEventType.info,
           message: 'fetchUserPurchasesInfo success',
@@ -144,7 +167,8 @@ class SkarbPlugin {
         throw SkarbException(err.toString(), 'FETCH_PURCHASE_ERROR');
       }
     } else if (Platform.isIOS) {
-      final result = await _channel.invokeMethod('fetchUserPurchasesInfo');
+      final result =
+          await _methodChannel.invokeMethod('fetchUserPurchasesInfo');
       if (result is String) {
         logger?.logEvent(
           eventType: SkarbEventType.error,
@@ -173,7 +197,7 @@ class SkarbPlugin {
   static Future<void> loadOfferings() async {
     if (Platform.isAndroid) {
       try {
-        final result = await _channel.invokeMethod('loadOfferings');
+        final result = await _methodChannel.invokeMethod('loadOfferings');
         offerings = SKOfferings.fromJson(Map<String, dynamic>.from(result));
         logger?.logEvent(
           eventType: SkarbEventType.info,
@@ -186,7 +210,7 @@ class SkarbPlugin {
         );
       }
     } else if (Platform.isIOS) {
-      final result = await _channel.invokeMethod('loadOfferings');
+      final result = await _methodChannel.invokeMethod('loadOfferings');
       if (result is String) {
         logger?.logEvent(
           eventType: SkarbEventType.error,
@@ -206,7 +230,7 @@ class SkarbPlugin {
     if (Platform.isAndroid) {
       await fetchUserPurchasesInfo();
     } else if (Platform.isIOS) {
-      final result = await _channel.invokeMethod('restorePurchases');
+      final result = await _methodChannel.invokeMethod('restorePurchases');
       if (result is String) {
         logger?.logEvent(
           eventType: SkarbEventType.error,
@@ -229,7 +253,7 @@ class SkarbPlugin {
     );
     if (Platform.isAndroid) {
       try {
-        final result = await _channel
+        final result = await _methodChannel
             .invokeMethod('purchasePackage', {'name': packageName});
         return SkarbPurchaseResultSuccess(
             SkarbPurchaseInfo.fromJson(Map<String, dynamic>.from(result)));
@@ -247,8 +271,8 @@ class SkarbPlugin {
         );
       }
     } else if (Platform.isIOS) {
-      final result =
-          await _channel.invokeMethod('purchasePackage', {'name': packageName});
+      final result = await _methodChannel
+          .invokeMethod('purchasePackage', {'name': packageName});
       if (result is Map<dynamic, dynamic>) {
         if (result['errorCode'] != null) {
           SkarbException exception = SkarbException.fromJson(result);
