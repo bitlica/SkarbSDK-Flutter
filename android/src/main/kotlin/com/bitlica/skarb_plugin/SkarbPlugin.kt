@@ -11,6 +11,7 @@ import com.bitlica.skarbsdk.model.SKUserPurchaseInfo
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -20,39 +21,56 @@ import java.text.NumberFormat
 import java.util.Currency
 
 /** SkarbPlugin */
-class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
-  private lateinit var channel : MethodChannel
+class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+    /// The MethodChannel that will the communication between Flutter and native Android
+    ///
+    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
+    /// when the Flutter Engine is detached from the Activity
+    private lateinit var channel: MethodChannel
 
-  private var lifetimePurchaseIdentifier: String? = null
+    private var lifetimePurchaseIdentifier: String? = null
 
-  private lateinit var application: Application
-  private var activity: Activity? = null
+    private lateinit var application: Application
+    private var activity: Activity? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
 
-    val tag = "onAttachedToEngine"
-    var context = flutterPluginBinding.applicationContext
-    while (context != null) {
-        application = context as Application
-        if (application != null) {
-            break
-        } else {
-            context = context.applicationContext
+        val tag = "onAttachedToEngine"
+        var context = flutterPluginBinding.applicationContext
+        while (context != null) {
+            application = context as Application
+            if (application != null) {
+                break
+            } else {
+                context = context.applicationContext
+            }
         }
+
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin")
+        channel.setMethodCallHandler(this)
+
+        EventChannel(flutterPluginBinding.binaryMessenger, "observeUnconsumedOneTimePurchases").setStreamHandler(
+            TimeHandler
+        )
     }
 
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin")
-    channel.setMethodCallHandler(this)
-  }
+    object TimeHandler : EventChannel.StreamHandler {
+        private var eventSink: EventChannel.EventSink? = null
+        override fun onListen(p0: Any?, sink: EventChannel.EventSink) {
+            eventSink = sink
+            eventSink?.success(p0)
+        }
+
+        override fun onCancel(p0: Any?) {
+            eventSink = null
+        }
+    }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
     }
-    override fun onReattachedToActivityForConfigChanges(binding:ActivityPluginBinding) {
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activity = binding.activity
     }
 
@@ -60,134 +78,137 @@ class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromActivity() {}
 
-  override fun onMethodCall(call: MethodCall, result: Result) {
-    if (call.method == "initialize") {
-     val clientKey = call.argument<String>("clientKey")
-     val deviceId = call.argument<String>("deviceId")
-     lifetimePurchaseIdentifier = call.argument<String>("lifetimePurchaseIdentifier")
-     SkarbSDK.isLoggingEnabled = true
-     SkarbSDK.initialize(application, clientKey!!, deviceId)
-     result.success(null)
-    } else if (call.method == "getDeviceId") {
-      val deviceId = SkarbSDK.getDeviceId()
-      result.success(deviceId)
-    } else if (call.method == "sendTest") {
-      val name = call.argument<String>("name")
-      val group = call.argument<String>("group")
-      SkarbSDK.sendTest(name!!, group!!)
-      result.success(null)
-    } else if (call.method == "sendGAID") {
-      val id = call.argument<String>("id")
-      SkarbSDK.sendGAID(id!!)
-      result.success(null)
-    } else if (call.method == "sendSource") {
-      val broker = SKBroker.Appsflyer
-      val features = call.argument<Map<String, Any>>("features")
-      val brokerUserID = call.argument<String>("uid")
-      SkarbSDK.sendSource(broker, features!!, brokerUserID)
-      result.success(null)
-    } else if (call.method == "syncPurchases") {
-        SkarbSDK.syncPurchases()
-        result.success(null)
-    } else if (call.method == "loadOfferings") {
-        SkarbSDK.getOfferings(SKRefreshPolicy.Always) { offeringsResult ->
-            try {
-                val offerings = offeringsResult.getOrThrow()
-                val json = skOfferingsToJson(offerings)
-                result.success(json)
-            } catch (e: Exception) {
-                result.error(
-                    "Error",
-                    e.message,
-                    null
-                )
-            }
-        }
-    } else if (call.method == "purchasePackage") {
-        val packageId = call.argument<String>("name")
-        SkarbSDK.getOfferings(SKRefreshPolicy.MemoryCached) { offeringsResult ->
-            try {
-                val offerings = offeringsResult.getOrThrow()
-                val offering = offerings.allOfferingPackages.firstOrNull { it.productId == packageId }
-                    ?: throw Exception("Package not found")
-                val activityInstance = activity ?: throw Exception("Activity not found")
-                SkarbSDK.purchasePackage(activityInstance, offering) { purchaseResult ->
-                    try {
-                        val purchase = purchaseResult.getOrThrow()
-                        val json = purchaseInfoToJson(purchase)
-                        if (offering.purchaseType == com.bitlica.skarbsdk.model.PurchaseType.Consumable) {
-                            val token = purchase.oneTimePurchases.filter { it.productId == packageId }.maxBy { it.purchaseDate }.purchaseToken
-                            if (token != null) {
-                                SkarbSDK.consumePurchase(token)
-                            }
-                        }
-                        result.success(json)
-                    } catch (e: Exception) {
-                        result.error(
-                            "Error",
-                            e.message,
-                            null
-                        )
-                    }
+    override fun onMethodCall(call: MethodCall, result: Result) {
+        if (call.method == "initialize") {
+            val clientKey = call.argument<String>("clientKey")
+            val deviceId = call.argument<String>("deviceId")
+            lifetimePurchaseIdentifier = call.argument<String>("lifetimePurchaseIdentifier")
+            SkarbSDK.isLoggingEnabled = true
+            SkarbSDK.initialize(application, clientKey!!, deviceId)
+            result.success(null)
+        } else if (call.method == "getDeviceId") {
+            val deviceId = SkarbSDK.getDeviceId()
+            result.success(deviceId)
+        } else if (call.method == "sendTest") {
+            val name = call.argument<String>("name")
+            val group = call.argument<String>("group")
+            SkarbSDK.sendTest(name!!, group!!)
+            result.success(null)
+        } else if (call.method == "sendGAID") {
+            val id = call.argument<String>("id")
+            SkarbSDK.sendGAID(id!!)
+            result.success(null)
+        } else if (call.method == "sendSource") {
+            val broker = SKBroker.Appsflyer
+            val features = call.argument<Map<String, Any>>("features")
+            val brokerUserID = call.argument<String>("uid")
+            SkarbSDK.sendSource(broker, features!!, brokerUserID)
+            result.success(null)
+        } else if (call.method == "syncPurchases") {
+            SkarbSDK.syncPurchases()
+            result.success(null)
+        } else if (call.method == "loadOfferings") {
+            SkarbSDK.getOfferings(SKRefreshPolicy.Always) { offeringsResult ->
+                try {
+                    val offerings = offeringsResult.getOrThrow()
+                    val json = skOfferingsToJson(offerings)
+                    result.success(json)
+                } catch (e: Exception) {
+                    result.error(
+                        "Error",
+                        e.message,
+                        null
+                    )
                 }
-            } catch (e: Exception) {
-                result.error(
-                    "Error",
-                    e.message,
-                    null
-                )
             }
-        }
-    } else if (call.method == "fetchUserPurchasesInfo") {
-        SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
-            try {
-                val purchases = purchasesResult.getOrThrow()
-                val json = purchaseInfoToJson(purchases)
-                result.success(json)
-            } catch (e: Exception) {
-                result.error(
-                    "Error",
-                    e.message,
-                    null
-                )
+        } else if (call.method == "purchasePackage") {
+            val packageId = call.argument<String>("name")
+            SkarbSDK.getOfferings(SKRefreshPolicy.MemoryCached) { offeringsResult ->
+                try {
+                    val offerings = offeringsResult.getOrThrow()
+                    val offering =
+                        offerings.allOfferingPackages.firstOrNull { it.productId == packageId }
+                            ?: throw Exception("Package not found")
+                    val activityInstance = activity ?: throw Exception("Activity not found")
+                    SkarbSDK.purchasePackage(activityInstance, offering) { purchaseResult ->
+                        try {
+                            val purchase = purchaseResult.getOrThrow()
+                            val json = purchaseInfoToJson(purchase)
+                            if (offering.purchaseType == com.bitlica.skarbsdk.model.PurchaseType.Consumable) {
+                                val token =
+                                    purchase.oneTimePurchases.filter { it.productId == packageId }
+                                        .maxBy { it.purchaseDate }.purchaseToken
+                                if (token != null) {
+                                    SkarbSDK.consumePurchase(token)
+                                }
+                            }
+                            result.success(json)
+                        } catch (e: Exception) {
+                            result.error(
+                                "Error",
+                                e.message,
+                                null
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    result.error(
+                        "Error",
+                        e.message,
+                        null
+                    )
+                }
             }
-        }
-    } else if (call.method == "isPremium") {
-        SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
-            try {
-               val purchases = purchasesResult.getOrThrow()
-               val lifetime = purchases.oneTimePurchases.firstOrNull {
-                   it.productId == lifetimePurchaseIdentifier
-               }
-               val subscription = purchases.purchasedSubscriptions.firstOrNull {
-                   it.isActive
-               }
-               result.success(lifetime != null || subscription != null)
-            } catch (e: Exception) {
-               result.success(false)
+        } else if (call.method == "fetchUserPurchasesInfo") {
+            SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
+                try {
+                    val purchases = purchasesResult.getOrThrow()
+                    val json = purchaseInfoToJson(purchases)
+                    result.success(json)
+                } catch (e: Exception) {
+                    result.error(
+                        "Error",
+                        e.message,
+                        null
+                    )
+                }
             }
-        }
-    } else if (call.method == "getRegionCode") {
-        val regionCode = SkarbSDK.getRegionCode() {
-            try {
-                val code = it.getOrThrow()
-                result.success(code)
-            } catch (e: Exception) {
-                result.error(
-                    "Error",
-                    e.message,
-                    null
-                )
+        } else if (call.method == "isPremium") {
+            SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
+                try {
+                    val purchases = purchasesResult.getOrThrow()
+                    val lifetime = purchases.oneTimePurchases.firstOrNull {
+                        it.productId == lifetimePurchaseIdentifier
+                    }
+                    val subscription = purchases.purchasedSubscriptions.firstOrNull {
+                        it.isActive
+                    }
+                    result.success(lifetime != null || subscription != null)
+                } catch (e: Exception) {
+                    result.success(false)
+                }
             }
+        } else if (call.method == "getRegionCode") {
+            val regionCode = SkarbSDK.getRegionCode() {
+                try {
+                    val code = it.getOrThrow()
+                    result.success(code)
+                } catch (e: Exception) {
+                    result.error(
+                        "Error",
+                        e.message,
+                        null
+                    )
+                }
+            }
+        } else {
+            result.notImplemented()
         }
-    } else {
-      result.notImplemented()
     }
-  }
 
-  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-  }
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+    }
 
     private fun skOfferingsToJson(offerings: SKOfferings): Map<String, Any> {
         return mapOf(
@@ -201,7 +222,10 @@ class SkarbPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
                             "description" to skOfferPackage.description,
                             "product_id" to skOfferPackage.productId,
                             "purchase_type" to purchaseTypeToString(skOfferPackage.purchaseType),
-                            "price_string" to formatPrice(skOfferPackage.storeProduct.priceAsDouble, skOfferPackage.storeProduct.currency),
+                            "price_string" to formatPrice(
+                                skOfferPackage.storeProduct.priceAsDouble,
+                                skOfferPackage.storeProduct.currency
+                            ),
                             "weekly_price_string" to weeklyPrice(skOfferPackage),
                             "daily_price_string" to dailyPrice(skOfferPackage),
                             // TODO: Determine if this is a trial
