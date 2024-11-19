@@ -8,6 +8,7 @@ class SkarbPurchaseInfo {
     required this.purchasedSubscriptions,
     required this.onetimePurchases,
   });
+
   static SkarbPurchaseInfo fromJson(Map<String, dynamic> json) {
     return SkarbPurchaseInfo(
       environment: json['environment'] as String,
@@ -64,12 +65,14 @@ class SkarbOnetimePurchase {
   final DateTime purchaseDate;
   final String productID;
   final int quantity;
+  final String? purchaseToken;
 
   SkarbOnetimePurchase({
     required this.transactionID,
     required this.purchaseDate,
     required this.productID,
     required this.quantity,
+    this.purchaseToken,
   });
 
   static SkarbOnetimePurchase fromJson(Map<String, dynamic> json) {
@@ -78,6 +81,7 @@ class SkarbOnetimePurchase {
       purchaseDate: DateTime.fromMillisecondsSinceEpoch(
           ((json['purchaseDate'] as double) * 1000).toInt()),
       productID: json['productID'] as String,
+      purchaseToken: json['purchaseToken'] as String?,
       quantity: json['quantity'] as int,
     );
   }
