@@ -11,17 +11,26 @@ import 'package:skarb_plugin/skarb_offerings.dart';
 
 class SkarbPlugin {
   static const MethodChannel _methodChannel = MethodChannel('skarb_plugin');
-  static const EventChannel _eventChannel =
+  static const EventChannel _unconsumedOneTimePurchasesEventChannel =
       EventChannel('observeUnconsumedOneTimePurchases');
 
   static SKOfferings? offerings;
   static SkarbLogger? logger;
 
-  static Stream<dynamic>? eventChannelHandler() {
+  static Stream<dynamic>? unconsumedOneTimePurchasesEventChannel() {
     if (Platform.isAndroid) {
-      return _eventChannel.receiveBroadcastStream();
+      return _unconsumedOneTimePurchasesEventChannel.receiveBroadcastStream();
     }
     return null;
+  }
+
+  static Future<bool?> consumePurchase(String purchaseToken) async {
+    final result = await _methodChannel.invokeMethod(
+      'consumePurchase',
+      {'purchaseToken': purchaseToken},
+    );
+
+    return result;
   }
 
   static Future<String?> getReceiptBase64() async {

@@ -38,6 +38,6 @@ Added androidClientKey to initialization
 
 Added dailyPriceString calculation
 
-## 3.1.0
+## 3.2.0
 
-Updated skarb to 2.0.4 version (added event channel to handle UnconsumedOneTimePurchases)
+Updated skarb to 2.0.6 version (added event channel to handle UnconsumedOneTimePurchases)

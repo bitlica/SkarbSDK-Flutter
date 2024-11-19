@@ -49,16 +49,24 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin")
         channel.setMethodCallHandler(this)
 
-        EventChannel(flutterPluginBinding.binaryMessenger, "observeUnconsumedOneTimePurchases").setStreamHandler(
+        EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            "observeUnconsumedOneTimePurchases"
+        ).setStreamHandler(
             TimeHandler
         )
     }
 
     object TimeHandler : EventChannel.StreamHandler {
         private var eventSink: EventChannel.EventSink? = null
-        override fun onListen(p0: Any?, sink: EventChannel.EventSink) {
-            eventSink = sink
-            eventSink?.success(p0)
+        override fun onListen(data: Any?, sink: EventChannel.EventSink) {
+            try {
+                eventSink = sink
+                if (data != null) {
+                    eventSink?.success(data)
+                }
+            } catch (e: Exception) {
+            }
         }
 
         override fun onCancel(p0: Any?) {
@@ -200,6 +208,18 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         null
                     )
                 }
+            }
+        } else if (call.method == "consumePurchase") {
+            try {
+                val purchaseToken = call.argument<String>("purchaseToken")
+                if (purchaseToken != null) {
+                    SkarbSDK.consumePurchase(purchaseToken)
+                    result.success(true)
+                    return
+                }
+                result.success(false)
+            } catch (e: Exception) {
+                result.success(false)
             }
         } else {
             result.notImplemented()
