@@ -90,9 +90,10 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         if (call.method == "initialize") {
             val clientKey = call.argument<String>("clientKey")
             val deviceId = call.argument<String>("deviceId")
+            val amplitudeApiKey = call.argument<String>("amplitude_api_key")
             lifetimePurchaseIdentifier = call.argument<String>("lifetimePurchaseIdentifier")
             SkarbSDK.isLoggingEnabled = true
-            SkarbSDK.initialize(application, clientKey!!, deviceId)
+            SkarbSDK.initialize(application, clientKey!!, deviceId, amplitudeApiKey)
             result.success(null)
         } else if (call.method == "getDeviceId") {
             val deviceId = SkarbSDK.getDeviceId()
