@@ -41,3 +41,7 @@ Added dailyPriceString calculation
 ## 3.2.0
 
 Updated skarb to 2.0.6 version (added event channel to handle UnconsumedOneTimePurchases)
+
+## 3.2.1
+
+Updated skarb to 2.0.7 version (added getUnconsumedOneTimePurchases method)

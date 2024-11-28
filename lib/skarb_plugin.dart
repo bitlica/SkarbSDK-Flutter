@@ -11,18 +11,9 @@ import 'package:skarb_plugin/skarb_offerings.dart';
 
 class SkarbPlugin {
   static const MethodChannel _methodChannel = MethodChannel('skarb_plugin');
-  static const EventChannel _unconsumedOneTimePurchasesEventChannel =
-      EventChannel('observeUnconsumedOneTimePurchases');
 
   static SKOfferings? offerings;
   static SkarbLogger? logger;
-
-  static Stream<dynamic>? unconsumedOneTimePurchasesEventChannel() {
-    if (Platform.isAndroid) {
-      return _unconsumedOneTimePurchasesEventChannel.receiveBroadcastStream();
-    }
-    return null;
-  }
 
   static Future<bool?> consumePurchase(String purchaseToken) async {
     final result = await _methodChannel.invokeMethod(
@@ -45,6 +36,26 @@ class SkarbPlugin {
       return _methodChannel.invokeMethod('getDeviceId');
     }
     return _methodChannel.invokeMethod('getSkarbDeviceId');
+  }
+
+  static Future<List<SkarbOnetimePurchase>>
+      getUnconsumedOneTimePurchases() async {
+    if (Platform.isAndroid) {
+      final result =
+          await _methodChannel.invokeMethod('getUnconsumedOneTimePurchases');
+      final array = result['onetimePurchases'] as List<dynamic>;
+
+      final data = List<SkarbOnetimePurchase>.generate(
+        array.length,
+        (i) {
+          return SkarbOnetimePurchase.fromJson(
+            Map<String, dynamic>.from(array[i]),
+          );
+        },
+      );
+      return data;
+    }
+    return <SkarbOnetimePurchase>[];
   }
 
   static Future<void> initialize({
