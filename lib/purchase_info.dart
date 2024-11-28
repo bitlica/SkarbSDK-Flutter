@@ -14,7 +14,7 @@ class SkarbPurchaseInfo {
   static SkarbPurchaseInfo fromJson(Map<String, dynamic> json) {
     return SkarbPurchaseInfo(
       environment: json['environment'] as String,
-      isConsumed: json['isConsumed'] as bool,
+      isConsumed: (json['isConsumed'] as bool?) ?? true,
       purchasedSubscriptions: (json['purchasedSubscriptions'] as List<dynamic>)
           .map((e) =>
               SkarbPurchasedSubscription.fromJson(Map<String, dynamic>.from(e)))
