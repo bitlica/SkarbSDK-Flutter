@@ -8,15 +8,14 @@ import com.bitlica.skarbsdk.model.SKOfferPackage
 import com.bitlica.skarbsdk.model.SKOfferings
 import com.bitlica.skarbsdk.model.SKRefreshPolicy
 import com.bitlica.skarbsdk.model.SKUserPurchaseInfo
+import com.bitlica.skarbsdk.model.SKOneTimePurchase
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.sql.Timestamp
 import java.text.NumberFormat
 import java.util.Currency
 
@@ -26,7 +25,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
-    private lateinit var channel: MethodChannel
+    private lateinit var methodChannel: MethodChannel
 
     private var lifetimePurchaseIdentifier: String? = null
 
@@ -46,32 +45,8 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             }
         }
 
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin")
-        channel.setMethodCallHandler(this)
-
-        EventChannel(
-            flutterPluginBinding.binaryMessenger,
-            "observeUnconsumedOneTimePurchases"
-        ).setStreamHandler(
-            TimeHandler
-        )
-    }
-
-    object TimeHandler : EventChannel.StreamHandler {
-        private var eventSink: EventChannel.EventSink? = null
-        override fun onListen(data: Any?, sink: EventChannel.EventSink) {
-            try {
-                eventSink = sink
-                if (data != null) {
-                    eventSink?.success(data)
-                }
-            } catch (e: Exception) {
-            }
-        }
-
-        override fun onCancel(p0: Any?) {
-            eventSink = null
-        }
+        methodChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin")
+        methodChannel.setMethodCallHandler(this)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -149,6 +124,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                                         .maxBy { it.purchaseDate }.purchaseToken
                                 if (token != null) {
                                     SkarbSDK.consumePurchase(token)
+                                    json["isConsumed"] = true
                                 }
                             }
                             result.success(json)
@@ -222,13 +198,28 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             } catch (e: Exception) {
                 result.success(false)
             }
+        } else if (call.method == "getUnconsumedOneTimePurchases") {
+            try {
+                SkarbSDK.getUnconsumedOneTimePurchases() { unconsumedOneTimePurchases ->
+                    val unconsumedOneTimePurchasesResult = unconsumedOneTimePurchases.getOrThrow()
+                    val json =
+                        unconsumedOneTimePurchasesResultToJson(unconsumedOneTimePurchasesResult);
+                    result.success(json)
+                }
+            } catch (e: Exception) {
+                result.error(
+                    "Error",
+                    e.message,
+                    null
+                )
+            }
         } else {
             result.notImplemented()
         }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
+        methodChannel.setMethodCallHandler(null)
     }
 
     private fun skOfferingsToJson(offerings: SKOfferings): Map<String, Any> {
@@ -299,8 +290,8 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         return formatPrice(weeklyPrice, currency)
     }
 
-    private fun purchaseInfoToJson(purchaseInfo: SKUserPurchaseInfo): Map<String, Any> {
-        return mapOf(
+    private fun purchaseInfoToJson(purchaseInfo: SKUserPurchaseInfo): MutableMap<String, Any> {
+        return mutableMapOf(
             "environment" to purchaseInfo.environment,
             "purchasedSubscriptions" to purchaseInfo.purchasedSubscriptions.map { subscription ->
                 mapOf(
@@ -322,7 +313,20 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     "quantity" to purchase.quantity,
                 )
             }
+        )
+    }
 
+    private fun unconsumedOneTimePurchasesResultToJson(unconsumedOneTimePurchases: List<SKOneTimePurchase>): Map<String, Any> {
+        return mapOf(
+            "onetimePurchases" to unconsumedOneTimePurchases.map { purchase ->
+                mapOf(
+                    "transactionID" to purchase.transactionId,
+                    "purchaseDate" to purchase.purchaseDate.time.toDouble() / 1000,
+                    "productID" to purchase.productId,
+                    "quantity" to purchase.quantity,
+                    "purchaseToken" to purchase.purchaseToken,
+                )
+            }
         )
     }
 }

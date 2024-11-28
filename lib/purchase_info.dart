@@ -1,10 +1,12 @@
 class SkarbPurchaseInfo {
   final String environment;
+  final bool isConsumed;
   final List<SkarbPurchasedSubscription> purchasedSubscriptions;
   final List<SkarbOnetimePurchase> onetimePurchases;
 
   SkarbPurchaseInfo({
     required this.environment,
+    this.isConsumed = false,
     required this.purchasedSubscriptions,
     required this.onetimePurchases,
   });
@@ -12,6 +14,7 @@ class SkarbPurchaseInfo {
   static SkarbPurchaseInfo fromJson(Map<String, dynamic> json) {
     return SkarbPurchaseInfo(
       environment: json['environment'] as String,
+      isConsumed: json['isConsumed'] as bool,
       purchasedSubscriptions: (json['purchasedSubscriptions'] as List<dynamic>)
           .map((e) =>
               SkarbPurchasedSubscription.fromJson(Map<String, dynamic>.from(e)))
