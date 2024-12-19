@@ -201,10 +201,21 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         } else if (call.method == "getUnconsumedOneTimePurchases") {
             try {
                 SkarbSDK.getUnconsumedOneTimePurchases() { unconsumedOneTimePurchases ->
-                    val unconsumedOneTimePurchasesResult = unconsumedOneTimePurchases.getOrThrow()
-                    val json =
-                        unconsumedOneTimePurchasesResultToJson(unconsumedOneTimePurchasesResult);
-                    result.success(json)
+                    if (unconsumedOneTimePurchases.isFailure) {
+                        result.error(
+                            "Error",
+                            unconsumedOneTimePurchases.exceptionOrNull()?.message,
+                            null
+                        )
+                    } else {
+                        val unconsumedOneTimePurchasesResult =
+                            unconsumedOneTimePurchases.getOrThrow()
+                        val json =
+                            unconsumedOneTimePurchasesResultToJson(
+                                unconsumedOneTimePurchasesResult
+                            );
+                        result.success(json)
+                    }
                 }
             } catch (e: Exception) {
                 result.error(
