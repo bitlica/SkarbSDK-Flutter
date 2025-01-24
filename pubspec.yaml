@@ -1,17 +1,14 @@
 name: skarb_plugin
 description: A new Flutter plugin project.
-version: 3.2.4
+version: 3.3.0
 
 environment:
-  sdk: ">=2.19.6 <3.0.0"
+  sdk: ">=2.19.6 <4.0.0"
   flutter: ">=2.5.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  plugin_platform_interface: ^2.0.2
-  intl: ^0.19.0
-  flutter_keychain: ^2.4.0
 
 dev_dependencies:
   flutter_test:

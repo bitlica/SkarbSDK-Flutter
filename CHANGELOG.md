@@ -49,3 +49,9 @@ Updated skarb to 2.0.7 version (added getUnconsumedOneTimePurchases method)
 ## 3.2.4
 
 Fixed crash on Android when calling getUnconsumedOneTimePurchases
+
+
+## 3.3.0
+
+Added onError function on loadOfferings function
+Refactored SkarbPlugin.kt (clean up the code, removed getOrThrow)
