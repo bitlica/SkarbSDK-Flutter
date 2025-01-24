@@ -214,7 +214,9 @@ class SkarbPlugin {
     }
   }
 
-  static Future<void> loadOfferings() async {
+  static Future<void> loadOfferings({
+    void Function(String)? onError,
+  }) async {
     if (Platform.isAndroid) {
       try {
         final result = await _methodChannel.invokeMethod('loadOfferings');
@@ -224,6 +226,7 @@ class SkarbPlugin {
           message: 'loadOfferings: success ${result.toString()}',
         );
       } on PlatformException catch (e) {
+        onError?.call(e.toString());
         logger?.logEvent(
           eventType: SkarbEventType.error,
           message: 'loadOfferings error ${e.message}',
@@ -232,6 +235,7 @@ class SkarbPlugin {
     } else if (Platform.isIOS) {
       final result = await _methodChannel.invokeMethod('loadOfferings');
       if (result is String) {
+        onError?.call(result);
         logger?.logEvent(
           eventType: SkarbEventType.error,
           message: 'loadOfferings error $result',
