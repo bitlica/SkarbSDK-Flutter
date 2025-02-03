@@ -89,7 +89,12 @@ class SkarbPlugin {
 
   static Future<String?> getCountryCode() async {
     if (Platform.isIOS) {
-      return await _methodChannel.invokeMethod('getCountryCode');
+      try {
+        final res = await _methodChannel.invokeMethod('getCountryCode');
+        return res;
+      } catch (_) {
+        return null;
+      }
     } else if (Platform.isAndroid) {
       try {
         final twoLetterCode =
@@ -146,12 +151,16 @@ class SkarbPlugin {
 
   static Future<bool> isPremium() async {
     if (Platform.isAndroid) {
-      final result = await _methodChannel.invokeMethod('isPremium');
-      logger?.logEvent(
-        eventType: SkarbEventType.info,
-        message: 'isPremium success: ${result == true}',
-      );
-      return result == true;
+      try {
+        final result = await _methodChannel.invokeMethod('isPremium');
+        logger?.logEvent(
+          eventType: SkarbEventType.info,
+          message: 'isPremium success: ${result == true}',
+        );
+        return result == true;
+      } catch (_) {
+        return false;
+      }
     } else if (Platform.isIOS) {
       final result = await _methodChannel.invokeMethod('isPremium');
       logger?.logEvent(

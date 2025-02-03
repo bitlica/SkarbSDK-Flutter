@@ -55,3 +55,6 @@ Fixed crash on Android when calling getUnconsumedOneTimePurchases
 
 Added onError function on loadOfferings function
 Refactored SkarbPlugin.kt (clean up the code, removed getOrThrow)
+
+## 3.3.1
+Fixed Premium function call without internet
