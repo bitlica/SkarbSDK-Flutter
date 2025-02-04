@@ -58,3 +58,6 @@ Refactored SkarbPlugin.kt (clean up the code, removed getOrThrow)
 
 ## 3.3.1
 Fixed Premium function call without internet
+
+## 3.3.2
+Updated `SkarbSDK-Android` to version 2.0.8 to resolve ANR issue during initialization.
