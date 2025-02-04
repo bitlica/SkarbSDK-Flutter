@@ -18,17 +18,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url "https://gitlab.com/api/v4/projects/57611358/packages/maven"
-            name "gitlab-maven"
-            credentials(HttpHeaderCredentials) {
-                name = "Private-Token"
-                value = "glpat-Pq34s7MyqUjmC2ZbbVZy"
-            }
-            authentication {
-                header(HttpHeaderAuthentication)
-            }
-        }
     }
 }
 
@@ -52,10 +41,10 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 19
     }
 }
 
 dependencies {
-    implementation('com.bitlica.skarbsdk:skarb:2.0.7')
+    implementation 'com.bitlica.skarbsdk:skarb:2.0.8'
 }
