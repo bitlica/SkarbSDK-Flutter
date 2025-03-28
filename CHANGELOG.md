@@ -61,3 +61,6 @@ Fixed Premium function call without internet
 
 ## 3.3.2
 Updated `SkarbSDK-Android` to version 2.0.8 to resolve ANR issue during initialization.
+
+## 3.3.3
+Updated `SkarbSDK` to version `~> 0.6.22`

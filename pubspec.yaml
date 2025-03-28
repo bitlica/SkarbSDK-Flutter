@@ -1,6 +1,6 @@
 name: skarb_plugin
-description: A new Flutter plugin project.
-version: 3.3.2
+description: Skarb flutter project.
+version: 3.3.3
 
 environment:
   sdk: ">=2.19.6 <4.0.0"
@@ -9,11 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^2.0.0
 
 flutter:
   plugin:

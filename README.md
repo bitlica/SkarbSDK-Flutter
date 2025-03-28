@@ -10,10 +10,6 @@ To use this plugin in Android, add this to your build.gradle file under allproje
 maven {
     url "https://gitlab.com/api/v4/projects/57611358/packages/maven"
     name "gitlab-maven"
-    credentials(HttpHeaderCredentials) {
-        name = "Private-Token"
-        value = "glpat-Pq34s7MyqUjmC2ZbbVZy"
-    }
     authentication {
         header(HttpHeaderAuthentication)
     }
