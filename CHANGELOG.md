@@ -64,3 +64,6 @@ Updated `SkarbSDK-Android` to version 2.0.8 to resolve ANR issue during initiali
 
 ## 3.3.3
 Updated `SkarbSDK` to version `~> 0.6.22`
+
+## 3.3.4
+Updated `SkarbSDK` to version `~> 0.6.21`
