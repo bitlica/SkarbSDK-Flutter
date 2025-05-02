@@ -18,10 +18,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url "https://gitlab.com/api/v4/projects/57611358/packages/maven"
-            name "gitlab-maven"
-        }
     }
 }
 
@@ -50,5 +46,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.bitlica.skarbsdk:skarb:2.0.7'
+    implementation 'com.bitlica.skarbsdk:skarb:2.0.8'
 }
