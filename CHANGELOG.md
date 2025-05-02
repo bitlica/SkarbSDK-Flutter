@@ -67,3 +67,6 @@ Updated `SkarbSDK` to version `~> 0.6.22`
 
 ## 3.3.4
 Updated `SkarbSDK` to version `~> 0.6.21`
+
+## 3.3.5
+Updated `SkarbSDK` to version `~> 0.6.23`
