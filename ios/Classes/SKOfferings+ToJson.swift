@@ -37,6 +37,7 @@ extension SKOfferPackage {
             "price_string": localizedPriceString,
             "weekly_price_string": weeklyLocalizedPriceString as Any,
             "daily_price_string": dailyLocalizedPriceString as Any,
+            "monthly_price_string": monthlyLocalizedPriceString as Any,
             "is_trial": isTrial
         ]
     }

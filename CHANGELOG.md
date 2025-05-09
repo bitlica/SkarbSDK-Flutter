@@ -70,3 +70,6 @@ Updated `SkarbSDK` to version `~> 0.6.21`
 
 ## 3.3.5
 Updated `SkarbSDK` to version `~> 0.6.23`
+
+## 3.3.6
+Added `monthlyPriceString` param 

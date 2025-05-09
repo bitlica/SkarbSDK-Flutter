@@ -309,6 +309,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             ),
                             "weekly_price_string" to weeklyPrice(skOfferPackage),
                             "daily_price_string" to dailyPrice(skOfferPackage),
+                            "monthly_price_string" to monthlyPrice(skOfferPackage),
                             // TODO: Determine if this is a trial
                             "is_trial" to skOfferPackage.storeProduct.hasTrial,
                         )
@@ -335,6 +336,18 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         return numberFormat.format(price)
     }
 
+    private fun monthlyPrice(offerPackage: SKOfferPackage): String {
+        val totalPrice = offerPackage.storeProduct.priceAsDouble
+        val monthlyPrice = when (offerPackage.purchaseType) {
+            com.bitlica.skarbsdk.model.PurchaseType.Weekly -> totalPrice
+            com.bitlica.skarbsdk.model.PurchaseType.Monthly -> totalPrice / 4
+            com.bitlica.skarbsdk.model.PurchaseType.Yearly -> totalPrice / 52
+            else -> totalPrice
+        }
+        val currency = offerPackage.storeProduct.currency
+        return formatPrice(monthlyPrice, currency)
+    }
+
     private fun weeklyPrice(offerPackage: SKOfferPackage): String {
         val totalPrice = offerPackage.storeProduct.priceAsDouble
         val weeklyPrice = when (offerPackage.purchaseType) {
@@ -349,14 +362,14 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     private fun dailyPrice(offerPackage: SKOfferPackage): String {
         val totalPrice = offerPackage.storeProduct.priceAsDouble
-        val weeklyPrice = when (offerPackage.purchaseType) {
+        val dailyPrice = when (offerPackage.purchaseType) {
             com.bitlica.skarbsdk.model.PurchaseType.Weekly -> totalPrice / 7
             com.bitlica.skarbsdk.model.PurchaseType.Monthly -> totalPrice / 30
             com.bitlica.skarbsdk.model.PurchaseType.Yearly -> totalPrice / 365
             else -> totalPrice
         }
         val currency = offerPackage.storeProduct.currency
-        return formatPrice(weeklyPrice, currency)
+        return formatPrice(dailyPrice, currency)
     }
 
     private fun purchaseInfoToJson(purchaseInfo: SKUserPurchaseInfo): MutableMap<String, Any> {
