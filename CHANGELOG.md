@@ -73,3 +73,6 @@ Updated `SkarbSDK` to version `~> 0.6.23`
 
 ## 3.3.6
 Added `monthlyPriceString` param 
+
+## 3.3.7
+Added `introductoryPriceString` param iOS only
