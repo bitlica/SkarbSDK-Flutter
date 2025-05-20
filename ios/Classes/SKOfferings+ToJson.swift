@@ -22,14 +22,14 @@ extension SKOffering {
         return [
             "id": id,
             "description": description,
-            "packages": packages.map { $0.toJson() }
+            "packages": packages.map { $0.toJson() },
         ]
     }
 }
 
 extension SKOfferPackage {
     func toJson() -> [String: Any] {
-      return [
+        return [
             "id": id,
             "description": description,
             "product_id": productId,
@@ -38,7 +38,8 @@ extension SKOfferPackage {
             "weekly_price_string": weeklyLocalizedPriceString as Any,
             "daily_price_string": dailyLocalizedPriceString as Any,
             "monthly_price_string": monthlyLocalizedPriceString as Any,
-            "is_trial": isTrial
+            "introductory_price_string": localizedIntroductoryPriceString as Any,
+            "is_trial": isTrial,
         ]
     }
 }

@@ -36,6 +36,8 @@ class SKOfferings {
           weeklyPriceString: packageJson['weekly_price_string'] as String?,
           dailyPriceString: packageJson['daily_price_string'] as String?,
           monthlyPriceString: packageJson['monthly_price_string'] as String?,
+          introductoryPriceString:
+              packageJson['introductory_price_string'] as String?,
           isTrial: packageJson['is_trial'] as bool,
         );
       }).toList();
@@ -100,6 +102,7 @@ class SKOfferPackage {
   final String? weeklyPriceString;
   final String? dailyPriceString;
   final String? monthlyPriceString;
+  final String? introductoryPriceString;
   final bool isTrial;
 
   SKOfferPackage({
@@ -111,6 +114,7 @@ class SKOfferPackage {
     required this.weeklyPriceString,
     required this.dailyPriceString,
     required this.monthlyPriceString,
+    required this.introductoryPriceString,
     required this.isTrial,
   });
 }
