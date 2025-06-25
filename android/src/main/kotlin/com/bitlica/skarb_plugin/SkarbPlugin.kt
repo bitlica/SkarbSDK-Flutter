@@ -61,21 +61,25 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 SkarbSDK.initialize(application, clientKey!!, deviceId, amplitudeApiKey)
                 result.success(null)
             }
+
             "getDeviceId" -> {
                 val deviceId = SkarbSDK.getDeviceId()
                 result.success(deviceId)
             }
+
             "sendTest" -> {
                 val name = call.argument<String>("name")
                 val group = call.argument<String>("group")
                 SkarbSDK.sendTest(name!!, group!!)
                 result.success(null)
             }
+
             "sendGAID" -> {
                 val id = call.argument<String>("id")
                 SkarbSDK.sendGAID(id!!)
                 result.success(null)
             }
+
             "sendSource" -> {
                 val broker = SKBroker.Appsflyer
                 val features = call.argument<Map<String, Any>>("features")
@@ -83,10 +87,12 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 SkarbSDK.sendSource(broker, features!!, brokerUserID)
                 result.success(null)
             }
+
             "syncPurchases" -> {
                 SkarbSDK.syncPurchases()
                 result.success(null)
             }
+
             "loadOfferings" -> {
                 SkarbSDK.getOfferings(SKRefreshPolicy.Always) { offeringsResult ->
                     try {
@@ -110,6 +116,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
             }
+
             "purchasePackage" -> {
                 val packageId = call.argument<String>("name")
                 SkarbSDK.getOfferings(SKRefreshPolicy.MemoryCached) { offeringsResult ->
@@ -133,7 +140,8 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                                 if (purchase == null) {
                                     result.error(
                                         "Error",
-                                        purchaseResult.exceptionOrNull()?.message ?: "Purchase is null",
+                                        purchaseResult.exceptionOrNull()?.message
+                                            ?: "Purchase is null",
                                         null
                                     )
                                     return@purchasePackage
@@ -164,6 +172,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
             }
+
             "fetchUserPurchasesInfo" -> {
                 SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
                     try {
@@ -187,6 +196,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
             }
+
             "isPremium" -> {
                 SkarbSDK.verifyPurchase(SKRefreshPolicy.Always) { purchasesResult ->
                     try {
@@ -211,6 +221,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
             }
+
             "getRegionCode" -> {
                 SkarbSDK.getRegionCode {
                     try {
@@ -233,6 +244,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     }
                 }
             }
+
             "consumePurchase" -> {
                 try {
                     val purchaseToken = call.argument<String>("purchaseToken")
@@ -246,6 +258,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     result.success(false)
                 }
             }
+
             "getUnconsumedOneTimePurchases" -> {
                 try {
                     SkarbSDK.getUnconsumedOneTimePurchases() { unconsumedOneTimePurchases ->
@@ -281,6 +294,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     )
                 }
             }
+
             else -> {
                 result.notImplemented()
             }
@@ -310,6 +324,10 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             "weekly_price_string" to weeklyPrice(skOfferPackage),
                             "daily_price_string" to dailyPrice(skOfferPackage),
                             "monthly_price_string" to monthlyPrice(skOfferPackage),
+                            "introductory_price_string" to formatPrice(
+                                skOfferPackage.storeProduct.introPhase?.priceAsDouble ?: 0.0,
+                                skOfferPackage.storeProduct.currency
+                            ),
                             // TODO: Determine if this is a trial
                             "is_trial" to skOfferPackage.storeProduct.hasTrial,
                         )

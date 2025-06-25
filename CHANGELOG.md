@@ -76,3 +76,6 @@ Added `monthlyPriceString` param
 
 ## 3.3.7
 Added `introductoryPriceString` param iOS only
+
+## 3.3.8
+Added `introductoryPriceString` param iOS/Android 
