@@ -206,7 +206,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             )
                             return@verifyPurchase
                         }
-                        val lifetimePurchases = info.oneTimePurchases.filter {
+                        val lifetimePurchases = purchases.oneTimePurchases.filter {
                             it.productId.contains("lifetime")
                         }
                         val subscription = purchases.purchasedSubscriptions.firstOrNull {
