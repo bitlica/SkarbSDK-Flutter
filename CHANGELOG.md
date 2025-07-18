@@ -79,7 +79,3 @@ Added `introductoryPriceString` param iOS only
 
 ## 3.3.8
 Added `introductoryPriceString` param iOS/Android 
-
-## 3.3.9
-Removed `lifetimePurchaseIdentifier` param
-Changed logic of isPremium for lifetime purchase
