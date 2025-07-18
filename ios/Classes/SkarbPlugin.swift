@@ -34,7 +34,7 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
             manager = BitlicaSkarbManagerImplementation(
                 clientId: "aifriend",
                 isObservable: false,
-                deviceId: deviceId,
+                deviceId: deviceId
             )
             manager?.delegate = self
             result(nil)
