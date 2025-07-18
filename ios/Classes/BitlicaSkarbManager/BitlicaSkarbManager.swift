@@ -81,7 +81,7 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
     public init(
         clientId: String,
         isObservable: Bool,
-        deviceId: String?,
+        deviceId: String?
     ) {
         SkarbSDK.initialize(
             clientId: clientId,
