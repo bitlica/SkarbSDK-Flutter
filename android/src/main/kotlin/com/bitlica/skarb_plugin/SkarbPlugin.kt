@@ -27,8 +27,6 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var methodChannel: MethodChannel
 
-    private var lifetimePurchaseIdentifier: String? = null
-
     private lateinit var application: Application
     private var activity: Activity? = null
 
@@ -56,7 +54,6 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val clientKey = call.argument<String>("clientKey")
                 val deviceId = call.argument<String>("deviceId")
                 val amplitudeApiKey = call.argument<String>("amplitude_api_key")
-                lifetimePurchaseIdentifier = call.argument<String>("lifetimePurchaseIdentifier")
                 SkarbSDK.isLoggingEnabled = true
                 SkarbSDK.initialize(application, clientKey!!, deviceId, amplitudeApiKey)
                 result.success(null)
@@ -209,13 +206,13 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             )
                             return@verifyPurchase
                         }
-                        val lifetime = purchases.oneTimePurchases.firstOrNull {
-                            it.productId == lifetimePurchaseIdentifier
+                        val lifetimePurchases = info.oneTimePurchases.filter {
+                            it.productId.contains("lifetime")
                         }
                         val subscription = purchases.purchasedSubscriptions.firstOrNull {
                             it.isActive
                         }
-                        result.success(lifetime != null || subscription != null)
+                        result.success(lifetimePurchases.isNotEmpty() != null || subscription != null)
                     } catch (e: Exception) {
                         result.success(false)
                     }

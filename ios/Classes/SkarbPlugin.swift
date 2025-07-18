@@ -26,20 +26,15 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
         case "initialize":
             SkarbSDK.isLoggingEnabled = true
             var deviceId: String? = nil
-            var lifetimePurchaseIdentifier: String? = nil
             if let args = call.arguments as? [String: Any] {
                 if let id = args["deviceId"] as? String {
                     deviceId = id
-                }
-                if let lifetimeId = args["lifetimePurchaseIdentifier"] as? String {
-                    lifetimePurchaseIdentifier = lifetimeId
                 }
             }
             manager = BitlicaSkarbManagerImplementation(
                 clientId: "aifriend",
                 isObservable: false,
                 deviceId: deviceId,
-                lifetimePurchaseIdentifier: lifetimePurchaseIdentifier
             )
             manager?.delegate = self
             result(nil)
