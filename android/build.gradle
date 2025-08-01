@@ -2,14 +2,14 @@ group 'com.bitlica.skarb_plugin'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.9.24'
+    ext.kotlin_version = '2.1.0'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath 'com.android.tools.build:gradle:8.3.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -25,6 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace = "com.bitlica.skarb_plugin"
     compileSdkVersion 34
 
     compileOptions {
@@ -46,5 +47,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.bitlica.skarbsdk:skarb:2.0.9'
+    implementation 'com.bitlica.skarbsdk:skarb:2.1.0'
 }
