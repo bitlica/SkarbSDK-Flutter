@@ -61,7 +61,6 @@ class SkarbPlugin {
   static Future<void> initialize({
     required String? deviceId,
     required String amplitudeApiKey,
-    String? lifetimePurchaseIdentifier,
     String? androidClientKey,
   }) async {
     logger?.logEvent(
@@ -71,14 +70,12 @@ class SkarbPlugin {
     if (Platform.isAndroid) {
       await _methodChannel.invokeMethod('initialize', {
         'deviceId': deviceId,
-        'lifetimePurchaseIdentifier': lifetimePurchaseIdentifier,
         'clientKey': androidClientKey ?? 'aifriendandroid',
         'amplitude_api_key': amplitudeApiKey,
       });
     } else if (Platform.isIOS) {
       await _methodChannel.invokeMethod('initialize', {
         'deviceId': deviceId,
-        'lifetimePurchaseIdentifier': lifetimePurchaseIdentifier,
       });
     }
     logger?.logEvent(

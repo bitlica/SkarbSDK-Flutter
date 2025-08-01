@@ -51,18 +51,18 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
     }
     public var offerings: SKOfferings?
     public var packages: [SKOfferPackage]?
-    public var lifetimePurchaseIdentifier: String?
     public var canMakePurchases: Bool {
         SkarbSDK.canMakePayments()
     }
+
     public var isPremium: Bool {
-        guard let userPurchasesInfo = userPurchasesInfo else {
-            return false
+        guard let userPurchasesInfo else { return false }
+
+        let lifetimePurchases = userPurchasesInfo.onetimePurchases.filter {
+            $0.productID.contains("lifetime")
         }
-        let didPurchaseLifetime = userPurchasesInfo.onetimePurchases.contains { purchase in
-            purchase.productID == lifetimePurchaseIdentifier
-        }
-        return userPurchasesInfo.isActiveSubscription || didPurchaseLifetime
+
+        return userPurchasesInfo.isActiveSubscription || !lifetimePurchases.isEmpty
     }
 
     public var userPurchasesInfoWasUpdated: Notification.Name {
@@ -81,10 +81,8 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
     public init(
         clientId: String,
         isObservable: Bool,
-        deviceId: String?,
-        lifetimePurchaseIdentifier: String?
+        deviceId: String?
     ) {
-        self.lifetimePurchaseIdentifier = lifetimePurchaseIdentifier
         SkarbSDK.initialize(
             clientId: clientId,
             isObservable: isObservable,
