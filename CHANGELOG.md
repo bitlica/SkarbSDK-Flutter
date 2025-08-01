@@ -79,3 +79,7 @@ Added `introductoryPriceString` param iOS only
 
 ## 3.3.8
 Added `introductoryPriceString` param iOS/Android 
+
+## 3.4.0
+Updated `SkarbSDK` android to version `2.1.0`
+Updated SKD version 34->35

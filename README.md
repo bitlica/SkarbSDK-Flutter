@@ -8,11 +8,7 @@ To use this plugin in Android, add this to your build.gradle file under allproje
 
 ```gradle
 maven {
-    url "https://gitlab.com/api/v4/projects/57611358/packages/maven"
-    name "gitlab-maven"
-    authentication {
-        header(HttpHeaderAuthentication)
-    }
+    url 'https://gitlab.com/api/v4/projects/67253583/packages/maven'
 }
 ```
 
