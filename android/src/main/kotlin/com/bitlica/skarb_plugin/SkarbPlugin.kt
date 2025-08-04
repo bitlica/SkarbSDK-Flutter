@@ -212,7 +212,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         val subscription = purchases.purchasedSubscriptions.firstOrNull {
                             it.isActive
                         }
-                        result.success(lifetimePurchases.isNotEmpty() != null || subscription != null)
+                        result.success(lifetimePurchases.isNotEmpty() || subscription != null)
                     } catch (e: Exception) {
                         result.success(false)
                     }
