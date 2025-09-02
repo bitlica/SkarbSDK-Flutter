@@ -88,3 +88,6 @@ Changed logic of isPremium for lifetime purchase
 Updated `SkarbSDK` android to version `2.1.0`
 Updated SKD version 34->35
 Fixed `isPremium` returned result issues
+
+## 3.4.1
+Added performance measurement for methods
