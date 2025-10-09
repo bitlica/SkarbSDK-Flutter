@@ -12,5 +12,3 @@ maven {
 }
 ```
 
-The private token is for v.starikov account on gitlab.com. It is used to access the android plugin package on gitlab.com.
-
