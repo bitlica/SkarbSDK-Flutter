@@ -74,6 +74,7 @@ class SkarbPlugin {
     required String? deviceId,
     required String amplitudeApiKey,
     String? androidClientKey,
+    bool isObservable = false,
   }) async {
     return _measure('initialize', () async {
       logger?.logEvent(
@@ -87,9 +88,8 @@ class SkarbPlugin {
           'amplitude_api_key': amplitudeApiKey,
         });
       } else if (Platform.isIOS) {
-        await _methodChannel.invokeMethod('initialize', {
-          'deviceId': deviceId,
-        });
+        await _methodChannel.invokeMethod(
+            'initialize', {'deviceId': deviceId, 'isObservable': isObservable});
       }
       logger?.logEvent(
         eventType: SkarbEventType.info,
