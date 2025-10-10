@@ -41,6 +41,7 @@ Future<void> main() async {
       deviceId: null,
       androidClientKey: androidClientKey,
       amplitudeApiKey: F.amplitudeKey,
+      isObservable: isObservable
   );
 
   runApp();
@@ -52,6 +53,9 @@ Future<void> main() async {
 ```androidClientKey``` Key for android ```clientKey```.
 
 ```deviceId``` If you want to can use your own generated deviceId. Default value is ```null```.
+
+```isObservable``` Automatically sends all events about purchases that are in your app if ```true```. Default value is ```false```.
+
 
 ### Send features 
 
