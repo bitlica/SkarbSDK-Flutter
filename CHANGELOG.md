@@ -91,3 +91,6 @@ Fixed `isPremium` returned result issues
 
 ## 3.4.1
 Added performance measurement for methods
+
+## 3.4.2
+Added `isObservable` param for iOS `initialize`
