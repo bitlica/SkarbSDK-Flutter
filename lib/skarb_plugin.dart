@@ -86,6 +86,7 @@ class SkarbPlugin {
           'deviceId': deviceId,
           'clientKey': androidClientKey ?? 'aifriendandroid',
           'amplitude_api_key': amplitudeApiKey,
+          'isObservable': isObservable,
         });
       } else if (Platform.isIOS) {
         await _methodChannel.invokeMethod(
