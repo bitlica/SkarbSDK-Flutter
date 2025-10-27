@@ -27,7 +27,7 @@ dependencies:
   skarb_plugin:
     git:
       url: https://github.com/bitlica/SkarbSDK-Flutter.git
-      ref: 3.4.0
+      ref: {version_tag} (example: 3.4.3)
 ```
 
 ## Usage

@@ -54,8 +54,9 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val clientKey = call.argument<String>("clientKey")
                 val deviceId = call.argument<String>("deviceId")
                 val amplitudeApiKey = call.argument<String>("amplitude_api_key")
+                val isObservable = call.argument<Boolean?>("isObservable") ?: false
                 SkarbSDK.isLoggingEnabled = true
-                SkarbSDK.initialize(application, clientKey!!, deviceId, amplitudeApiKey)
+                SkarbSDK.initialize(application, clientKey!!, isObservable, deviceId, amplitudeApiKey)
                 result.success(null)
             }
 

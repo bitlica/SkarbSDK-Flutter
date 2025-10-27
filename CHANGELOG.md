@@ -94,3 +94,7 @@ Added performance measurement for methods
 
 ## 3.4.2
 Added `isObservable` param for iOS `initialize`
+
+## 3.4.3
+Updated Skarb android to 2.2
+added "isObservable" param in function SkarbSDK.initialize (android)
