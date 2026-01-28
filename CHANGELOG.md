@@ -50,7 +50,6 @@ Updated skarb to 2.0.7 version (added getUnconsumedOneTimePurchases method)
 
 Fixed crash on Android when calling getUnconsumedOneTimePurchases
 
-
 ## 3.3.0
 
 Added onError function on loadOfferings function
@@ -98,3 +97,7 @@ Added `isObservable` param for iOS `initialize`
 ## 3.4.3
 Updated Skarb android to 2.2
 added "isObservable" param in function SkarbSDK.initialize (android)
+
+## 3.4.4
+
+Added `RestorePurchasesResult` and improved `restorePurchases` to return error message and collected purchases.

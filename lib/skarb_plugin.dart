@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -10,6 +9,7 @@ import 'package:skarb_plugin/purchase_result.dart';
 import 'package:skarb_plugin/skarb_exception.dart';
 import 'package:skarb_plugin/skarb_logger.dart';
 import 'package:skarb_plugin/skarb_offerings.dart';
+import 'package:skarb_plugin/skarb_transaction.dart';
 
 class SkarbPlugin {
   static const MethodChannel _methodChannel = MethodChannel('skarb_plugin');
@@ -249,6 +249,43 @@ class SkarbPlugin {
     });
   }
 
+  static Future<List<SkarbTransaction>> _safeFetchProducts() async {
+    try {
+      final info = await fetchUserPurchasesInfo();
+      if (info == null) return [];
+
+      final products = <SkarbTransaction>[];
+
+      for (final subscription in info.purchasedSubscriptions) {
+        products.add(
+          SkarbTransaction(
+            transactionIdentifier: subscription.transactionID,
+            productIdentifier: subscription.productID,
+            purchaseDate: subscription.expiryDate.toIso8601String(),
+          ),
+        );
+      }
+
+      for (final onetime in info.onetimePurchases) {
+        products.add(
+          SkarbTransaction(
+            transactionIdentifier: onetime.transactionID,
+            productIdentifier: onetime.productID,
+            purchaseDate: onetime.purchaseDate.toIso8601String(),
+          ),
+        );
+      }
+
+      return products;
+    } catch (e) {
+      logger?.logEvent(
+        eventType: SkarbEventType.error,
+        message: '_safeFetchProducts error: $e',
+      );
+      return [];
+    }
+  }
+
   static Future<void> loadOfferings({
     void Function(String)? onError,
   }) async {
@@ -283,27 +320,64 @@ class SkarbPlugin {
     });
   }
 
-  static Future<void> restorePurchases() async {
+  static Future<RestorePurchasesResult> restorePurchases() async {
     return _measure('restorePurchases', () async {
       logger?.logEvent(
         eventType: SkarbEventType.info,
         message: 'restorePurchases',
       );
-      if (Platform.isAndroid) {
-        await fetchUserPurchasesInfo();
-      } else if (Platform.isIOS) {
-        final result = await _methodChannel.invokeMethod('restorePurchases');
-        if (result is String) {
-          logger?.logEvent(
-            eventType: SkarbEventType.error,
-            message: 'restorePurchases error $result',
+
+      try {
+        if (Platform.isAndroid) {
+          final products = await _safeFetchProducts();
+          return RestorePurchasesResult(
+            success: true,
+            products: products,
           );
-        } else {
+        }
+
+        if (Platform.isIOS) {
+          final result = await _methodChannel.invokeMethod('restorePurchases');
+
+          if (result is String) {
+            logger?.logEvent(
+              eventType: SkarbEventType.error,
+              message: 'restorePurchases error $result',
+            );
+            final products = await _safeFetchProducts();
+            return RestorePurchasesResult(
+              success: false,
+              errorMessage: result,
+              products: products,
+            );
+          }
+
           logger?.logEvent(
             eventType: SkarbEventType.info,
             message: 'restorePurchases success',
           );
+          final products = await _safeFetchProducts();
+          return RestorePurchasesResult(
+            success: true,
+            products: products,
+          );
         }
+
+        throw SkarbException(
+          'Unsupported platform',
+          'INTERNAL_UNSUPPORTED_ERROR',
+        );
+      } catch (e) {
+        logger?.logEvent(
+          eventType: SkarbEventType.error,
+          message: 'restorePurchases exception $e',
+        );
+        final products = await _safeFetchProducts();
+        return RestorePurchasesResult(
+          success: false,
+          errorMessage: e.toString(),
+          products: products,
+        );
       }
     });
   }
