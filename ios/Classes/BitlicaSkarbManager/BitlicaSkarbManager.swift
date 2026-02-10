@@ -130,9 +130,8 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
             case .success(let updatedUserPurchaseInfo):
                 self.needToUpdateUserPurchasesInfo(updatedUserPurchaseInfo)
                 completion(.success(updatedUserPurchaseInfo))
-            case .failure:
-                let nsError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "Something went wrong. Please try again later."])
-                completion(.failure(nsError))
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }

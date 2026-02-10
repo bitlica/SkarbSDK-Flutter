@@ -101,3 +101,7 @@ added "isObservable" param in function SkarbSDK.initialize (android)
 ## 3.4.4
 
 Added `RestorePurchasesResult` and improved `restorePurchases` to return error message and collected purchases.
+
+## 3.4.5
+
+Added error description on `restorePurchases`.
