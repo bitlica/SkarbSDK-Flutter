@@ -105,3 +105,6 @@ Added `RestorePurchasesResult` and improved `restorePurchases` to return error m
 ## 3.4.5
 
 Added error description on `restorePurchases`.
+
+## 3.4.6
+Updated Skarb android to 2.2.1
