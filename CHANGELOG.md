@@ -108,3 +108,4 @@ Added error description on `restorePurchases`.
 
 ## 3.4.6
 Updated Skarb android to 2.2.1
+Updated `introductory_price_string` Android

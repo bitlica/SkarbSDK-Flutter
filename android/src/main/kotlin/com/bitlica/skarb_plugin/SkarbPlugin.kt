@@ -322,10 +322,9 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             "weekly_price_string" to weeklyPrice(skOfferPackage),
                             "daily_price_string" to dailyPrice(skOfferPackage),
                             "monthly_price_string" to monthlyPrice(skOfferPackage),
-                            "introductory_price_string" to formatPrice(
-                                skOfferPackage.storeProduct.introPhase?.priceAsDouble ?: 0.0,
-                                skOfferPackage.storeProduct.currency
-                            ),
+                            "introductory_price_string" to skOfferPackage.storeProduct.introPhase?.let {
+                                formatPrice(it.priceAsDouble, skOfferPackage.storeProduct.currency)
+                            },
                             // TODO: Determine if this is a trial
                             "is_trial" to skOfferPackage.storeProduct.hasTrial,
                         )
