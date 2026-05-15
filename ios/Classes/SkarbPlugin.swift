@@ -4,32 +4,43 @@ import StoreKit
 import UIKit
 
 public class SkarbPlugin: NSObject, FlutterPlugin {
-    private var manager: BitlicaSkarbManager? = nil
 
-    // Streamed updates to Dart whenever a purchase / restore / receipt
-    // validation refreshes the cached `userPurchasesInfo`. Mirrors the
-    // pattern from Cleaner's `SubscriptionService.userPurchasesInfoWasUpdated`.
-    //
-    // All access to `eventSink` and `observerBag` happens on the main
-    // thread: Flutter dispatches FlutterStreamHandler callbacks on the
-    // platform (main) thread, and we register notification observers with
-    // `queue: .main`. Each public entry point asserts this with
-    // `dispatchPrecondition` so any regression is caught immediately.
-    //
-    // `internal` (default) rather than `private` so the FlutterStreamHandler
-    // extension can read them from `SkarbPlugin+FlutterStreamHandler.swift`
-    // — Swift's `private` doesn't cross files even for type extensions.
-    var eventSink: FlutterEventSink?
-    let observerBag = NotificationObserverBag()
+    // MARK: - Channels
+
+    // Single source of truth for the iOS-side channel names. The Dart
+    // side keeps its own mirror in `lib/skarb_plugin.dart::_Channels`;
+    // the two literals must match.
+    enum Channels {
+        static let method = "skarb_plugin"
+        static let purchaseInfoEvents = "skarb_plugin/purchase_info"
+    }
+
+    // MARK: - Private (Properties)
+
+    private var manager: BitlicaSkarbManager?
+    private let purchaseInfoBridge = PurchaseInfoEventBridge()
+
+    // MARK: - Public (Interface) — FlutterPlugin
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let messenger = registrar.messenger()
-        let channel = FlutterMethodChannel(name: "skarb_plugin", binaryMessenger: messenger)
         let instance = SkarbPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
 
-        let eventChannel = FlutterEventChannel(name: "skarb_plugin/events", binaryMessenger: messenger)
-        eventChannel.setStreamHandler(instance)
+        let methodChannel = FlutterMethodChannel(
+            name: Channels.method,
+            binaryMessenger: messenger
+        )
+        registrar.addMethodCallDelegate(instance, channel: methodChannel)
+
+        // Event channel for cached `SKUserPurchaseInfo` broadcasts. Bridge
+        // is wired up here so a Dart listener can attach even before
+        // `initialize` lands — once it does, the manager is `attach()`-ed
+        // into the bridge and any cached snapshot is replayed.
+        let eventChannel = FlutterEventChannel(
+            name: Channels.purchaseInfoEvents,
+            binaryMessenger: messenger
+        )
+        eventChannel.setStreamHandler(instance.purchaseInfoBridge)
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -61,6 +72,7 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
                 deviceId: deviceId
             )
             manager?.delegate = self
+            if let manager { purchaseInfoBridge.attach(manager: manager) }
             result(nil)
         case "fetchUserPurchasesInfo":
             manager?.fetchUserPurchasesInfo(with: .always) { fetchResult in

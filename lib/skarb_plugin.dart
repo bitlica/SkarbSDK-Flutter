@@ -11,9 +11,17 @@ import 'package:skarb_plugin/skarb_logger.dart';
 import 'package:skarb_plugin/skarb_offerings.dart';
 import 'package:skarb_plugin/skarb_transaction.dart';
 
+/// Channel name constants — mirror of the iOS-side `SkarbPlugin.Channels`
+/// enum. The two literals must match exactly.
+class _Channels {
+  static const String method = 'skarb_plugin';
+  static const String purchaseInfoEvents = 'skarb_plugin/purchase_info';
+}
+
 class SkarbPlugin {
-  static const MethodChannel _methodChannel = MethodChannel('skarb_plugin');
-  static const EventChannel _eventChannel = EventChannel('skarb_plugin/events');
+  static const MethodChannel _methodChannel = MethodChannel(_Channels.method);
+  static const EventChannel _eventChannel =
+      EventChannel(_Channels.purchaseInfoEvents);
 
   static SKOfferings? offerings;
   static SkarbLogger? logger;
