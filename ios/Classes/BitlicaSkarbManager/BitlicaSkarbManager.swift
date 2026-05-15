@@ -45,6 +45,13 @@ public protocol BitlicaSkarbManager: AnyObject {
 
 public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
 
+    // Single source of truth for the notification name posted by this
+    // manager whenever its cached `userPurchasesInfo` refreshes. Exposed as
+    // a typed `Notification.Name` so observers (e.g. the Flutter event-
+    // channel forwarder) don't repeat the raw string and risk drift.
+    public static let userPurchasesInfoDidUpdateNotification: Notification.Name =
+        Notification.Name("SubscriptionValidWasUpdated")
+
     // MARK: Public (Properties)
     public var hasAvailablePackages: Bool {
         packages?.isEmpty == false
@@ -66,7 +73,7 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
     }
 
     public var userPurchasesInfoWasUpdated: Notification.Name {
-        Notification.Name("SubscriptionValidWasUpdated")
+        Self.userPurchasesInfoDidUpdateNotification
     }
 
     public weak var delegate: BitlicaSkarbManagerDelegate?

@@ -15,7 +15,10 @@ A new Flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'SkarbSDK', '0.6.23'
+  # Pessimistic pin (~> 0.6.30 == >= 0.6.30, < 0.7) — keep within the 0.6
+  # series until a coordinated bump to 0.7. New API surface (stream of
+  # cached purchase info + sync getter) requires SkarbSDK >= 0.6.30.
+  s.dependency 'SkarbSDK', '~> 0.6.30'
   s.platform = :ios, '9.0'
 
   # Flutter.framework does not contain a i386 slice.

@@ -115,3 +115,10 @@ Updated Skarb android to 2.2.2 (add Google Play in-app messaging for subscriptio
 
 ## 3.4.8
 Updated Skarb android to 2.2.3 (Initialization changes)
+
+## 3.5.0
+iOS purchase-info broadcast surface:
+- Added `SkarbPlugin.onPurchaseInfoUpdated` — broadcast `Stream<SkarbPurchaseInfo?>` that emits whenever the native cache refreshes (after purchase/restore/receipt validation, or SDK-driven background re-validation). On subscribe replays the current cached snapshot. iOS only; Android emits empty stream.
+- Added `SkarbPlugin.getCachedUserPurchasesInfo()` — synchronous-ish cache read, no network. iOS only.
+- iOS: bumped SkarbSDK pin from `'0.6.23'` to `'~> 0.6.30'` (required for the new APIs and for downstream ScreenBuilder SDK consumers).
+- iOS internal: notification name `SubscriptionValidWasUpdated` exposed as `BitlicaSkarbManagerImplementation.userPurchasesInfoDidUpdateNotification` (typed `Notification.Name`).

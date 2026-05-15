@@ -6,10 +6,30 @@ import UIKit
 public class SkarbPlugin: NSObject, FlutterPlugin {
     private var manager: BitlicaSkarbManager? = nil
 
+    // Streamed updates to Dart whenever a purchase / restore / receipt
+    // validation refreshes the cached `userPurchasesInfo`. Mirrors the
+    // pattern from Cleaner's `SubscriptionService.userPurchasesInfoWasUpdated`.
+    //
+    // All access to `eventSink` and `observerBag` happens on the main
+    // thread: Flutter dispatches FlutterStreamHandler callbacks on the
+    // platform (main) thread, and we register notification observers with
+    // `queue: .main`. Each public entry point asserts this with
+    // `dispatchPrecondition` so any regression is caught immediately.
+    //
+    // `internal` (default) rather than `private` so the FlutterStreamHandler
+    // extension can read them from `SkarbPlugin+FlutterStreamHandler.swift`
+    // — Swift's `private` doesn't cross files even for type extensions.
+    var eventSink: FlutterEventSink?
+    let observerBag = NotificationObserverBag()
+
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "skarb_plugin", binaryMessenger: registrar.messenger())
+        let messenger = registrar.messenger()
+        let channel = FlutterMethodChannel(name: "skarb_plugin", binaryMessenger: messenger)
         let instance = SkarbPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
+
+        let eventChannel = FlutterEventChannel(name: "skarb_plugin/events", binaryMessenger: messenger)
+        eventChannel.setStreamHandler(instance)
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -51,6 +71,11 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
                     result(self.errorDescription(error))
                 }
             }
+        case "getCachedUserPurchasesInfo":
+            // Synchronous cache read — no network. Mirrors the
+            // `SkarbSDK.getCachedUserPurchaseInfoIfAvailable()` pattern
+            // used in Cleaner's SubscriptionService.
+            result(manager?.userPurchasesInfo?.toJson())
         case "sendAFSource":
             if let args = call.arguments as? [String: Any], let conversionInfo = args["conversionInfo"] as? [String: Any], let uid = args["uid"] as? String {
                 SkarbSDK.sendSource(broker: .appsflyer,

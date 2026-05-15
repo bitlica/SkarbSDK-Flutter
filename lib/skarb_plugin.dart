@@ -13,9 +13,68 @@ import 'package:skarb_plugin/skarb_transaction.dart';
 
 class SkarbPlugin {
   static const MethodChannel _methodChannel = MethodChannel('skarb_plugin');
+  static const EventChannel _eventChannel = EventChannel('skarb_plugin/events');
 
   static SKOfferings? offerings;
   static SkarbLogger? logger;
+
+  static Stream<SkarbPurchaseInfo?>? _onPurchaseInfoUpdated;
+
+  /// Broadcast of cached [SkarbPurchaseInfo] snapshots.
+  ///
+  /// Emits whenever the native side refreshes its cache:
+  ///   * after a successful purchase / restore / receipt validation we
+  ///     initiated, **or**
+  ///   * after an SDK-driven cache update (e.g. background re-validation).
+  ///
+  /// On first subscription the stream immediately replays the current
+  /// cached snapshot (if any) so a late-attaching listener doesn't have
+  /// to wait for the next purchase to learn the state. Emits `null` if
+  /// the cache is empty / cannot be decoded.
+  ///
+  /// **iOS only.** On Android (no native StreamHandler) returns an empty
+  /// stream — Android already exposes everything through the existing
+  /// imperative methods.
+  ///
+  /// Mirrors Cleaner's
+  /// `SubscriptionService.userPurchasesInfoWasUpdated` observation pattern.
+  static Stream<SkarbPurchaseInfo?> get onPurchaseInfoUpdated {
+    if (!Platform.isIOS) {
+      return _onPurchaseInfoUpdated ??= const Stream<SkarbPurchaseInfo?>.empty();
+    }
+    return _onPurchaseInfoUpdated ??= _eventChannel
+        .receiveBroadcastStream()
+        .map<SkarbPurchaseInfo?>((event) {
+      if (event is Map) {
+        try {
+          return SkarbPurchaseInfo.fromJson(Map<String, dynamic>.from(event));
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    });
+  }
+
+  /// Synchronous-ish read of the last cached purchase info — no network,
+  /// no SDK call. Returns `null` when the cache is empty. iOS only.
+  static Future<SkarbPurchaseInfo?> getCachedUserPurchasesInfo() async {
+    return _measure('getCachedUserPurchasesInfo', () async {
+      if (!Platform.isIOS) {
+        return null;
+      }
+      final result =
+          await _methodChannel.invokeMethod('getCachedUserPurchasesInfo');
+      if (result is Map) {
+        try {
+          return SkarbPurchaseInfo.fromJson(Map<String, dynamic>.from(result));
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    });
+  }
 
   static Future<bool?> consumePurchase(String purchaseToken) async {
     return _measure('consumePurchase', () async {
