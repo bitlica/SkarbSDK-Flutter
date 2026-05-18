@@ -4,12 +4,43 @@ import StoreKit
 import UIKit
 
 public class SkarbPlugin: NSObject, FlutterPlugin {
-    private var manager: BitlicaSkarbManager? = nil
+
+    // MARK: - Channels
+
+    // Single source of truth for the iOS-side channel names. The Dart
+    // side keeps its own mirror in `lib/skarb_plugin.dart::_Channels`;
+    // the two literals must match.
+    enum Channels {
+        static let method = "skarb_plugin"
+        static let purchaseInfoEvents = "skarb_plugin/purchase_info"
+    }
+
+    // MARK: - Private (Properties)
+
+    private var manager: BitlicaSkarbManager?
+    private let purchaseInfoBridge = PurchaseInfoEventBridge()
+
+    // MARK: - Public (Interface) — FlutterPlugin
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "skarb_plugin", binaryMessenger: registrar.messenger())
+        let messenger = registrar.messenger()
         let instance = SkarbPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
+
+        let methodChannel = FlutterMethodChannel(
+            name: Channels.method,
+            binaryMessenger: messenger
+        )
+        registrar.addMethodCallDelegate(instance, channel: methodChannel)
+
+        // Event channel for cached `SKUserPurchaseInfo` broadcasts. Bridge
+        // is wired up here so a Dart listener can attach even before
+        // `initialize` lands — once it does, the manager is `attach()`-ed
+        // into the bridge and any cached snapshot is replayed.
+        let eventChannel = FlutterEventChannel(
+            name: Channels.purchaseInfoEvents,
+            binaryMessenger: messenger
+        )
+        eventChannel.setStreamHandler(instance.purchaseInfoBridge)
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -41,6 +72,7 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
                 deviceId: deviceId
             )
             manager?.delegate = self
+            if let manager { purchaseInfoBridge.attach(manager: manager) }
             result(nil)
         case "fetchUserPurchasesInfo":
             manager?.fetchUserPurchasesInfo(with: .always) { fetchResult in
@@ -51,6 +83,11 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
                     result(self.errorDescription(error))
                 }
             }
+        case "getCachedUserPurchasesInfo":
+            // Synchronous cache read — no network. Mirrors the
+            // `SkarbSDK.getCachedUserPurchaseInfoIfAvailable()` pattern
+            // used in Cleaner's SubscriptionService.
+            result(manager?.userPurchasesInfo?.toJson())
         case "sendAFSource":
             if let args = call.arguments as? [String: Any], let conversionInfo = args["conversionInfo"] as? [String: Any], let uid = args["uid"] as? String {
                 SkarbSDK.sendSource(broker: .appsflyer,
