@@ -116,6 +116,13 @@ Updated Skarb android to 2.2.2 (add Google Play in-app messaging for subscriptio
 ## 3.4.8
 Updated Skarb android to 2.2.3 (Initialization changes)
 
+## 3.6.0
+iOS Swift Package Manager support (alongside CocoaPods):
+- Added `ios/skarb_plugin/Package.swift` declaring the plugin as an SPM package. Depends on the native `SkarbSDK` iOS package from `github.com/bitlica/SkarbSDK-iOS` (from 0.6.31) — `grpc-swift` / `swift-nio` / `swift-nio-ssl` come transitively via SPM.
+- Sources moved from `ios/Classes/` to `ios/skarb_plugin/Sources/skarb_plugin/` (Flutter SPM convention). Git history preserved via rename.
+- `ios/skarb_plugin.podspec` `source_files` updated to the new path; `s.dependency 'SkarbSDK', '~> 0.6.30'` and the rest of the podspec unchanged — hosts that haven't enabled Flutter SPM mode continue to integrate via CocoaPods exactly as before.
+- Hosts can opt into the SPM path with `flutter config --enable-swift-package-manager`. **Do not mix**: keeping `pod 'SkarbSDK'` in the host Podfile while also pulling the SPM package produces duplicate copies of `CNIOBoringSSL`/`SwiftNIO`/`gRPC` that crash at TLS context creation — drop the explicit pod from the Podfile when switching to SPM.
+
 ## 3.5.0
 iOS purchase-info broadcast surface:
 - Added `SkarbPlugin.onPurchaseInfoUpdated` — broadcast `Stream<SkarbPurchaseInfo?>` that emits whenever the native cache refreshes (after purchase/restore/receipt validation, or SDK-driven background re-validation). On subscribe replays the current cached snapshot. iOS only; Android emits empty stream.

@@ -13,7 +13,7 @@ A new Flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'skarb_plugin/Sources/skarb_plugin/**/*'
   s.dependency 'Flutter'
   # Pessimistic pin (~> 0.6.30 == >= 0.6.30, < 0.7) — keep within the 0.6
   # series until a coordinated bump to 0.7. New API surface (stream of
