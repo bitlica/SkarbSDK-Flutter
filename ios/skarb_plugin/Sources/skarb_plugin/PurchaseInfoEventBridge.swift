@@ -3,12 +3,13 @@
 //  skarb_plugin
 //
 //  Bridges iOS NotificationCenter signals about purchase-info cache
-//  refreshes to a Flutter EventChannel. Listens to:
-//   * `BitlicaSkarbManagerImplementation.userPurchasesInfoDidUpdateNotification`
-//     (posted by our own manager after purchase/restore/validate), and
-//   * `Notification.Name.skarbUserPurchaseInfoDidUpdate`
-//     (posted by SkarbSDK itself whenever its in-memory cache refreshes,
-//     e.g. on background receipt re-validation).
+//  refreshes to a Flutter EventChannel. Listens only to the manager's
+//  own `userPurchasesInfoDidUpdateNotification`, which the manager
+//  fans out for both directly-initiated flows (purchase / restore /
+//  validate) and SDK-driven cache refreshes (it observes
+//  `.skarbUserPurchaseInfoDidUpdate` and re-broadcasts). This keeps the
+//  data flow one-directional: SDK → manager → bridge → Dart, with no
+//  parallel listeners on the SDK-level notification.
 //
 //  All entry points run on the main thread:
 //   * `onListen` / `onCancel` are dispatched by Flutter on the platform
@@ -71,22 +72,15 @@ final class PurchaseInfoEventBridge: NSObject, FlutterStreamHandler {
         guard observerBag.isEmpty else { return }
         let center = NotificationCenter.default
 
-        // Posted by `BitlicaSkarbManagerImplementation` after each
-        // purchase/restore/validate succeeds.
+        // Single source: the manager fans out both directly-initiated
+        // updates (purchase / restore / validate callbacks) and
+        // SDK-driven cache refreshes (it observes
+        // `.skarbUserPurchaseInfoDidUpdate` and re-posts). Subscribing
+        // only here keeps the flow one-directional and avoids duplicate
+        // events.
         observerBag.add(center.addObserver(
             forName: BitlicaSkarbManagerImplementation
                 .userPurchasesInfoDidUpdateNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.pushCachedInfo()
-        })
-
-        // Posted by SkarbSDK whenever its own cache refreshes (e.g. a
-        // background receipt re-validation). Keeps Dart in sync with
-        // SDK-driven updates we didn't initiate ourselves.
-        observerBag.add(center.addObserver(
-            forName: .skarbUserPurchaseInfoDidUpdate,
             object: nil,
             queue: .main
         ) { [weak self] _ in
