@@ -82,6 +82,7 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
 
     //  MARK: Private (Properties)
     private var purchaseEventParams: [String: Any]?
+    private let observerBag = NotificationObserverBag()
 
     //  MARK: Init
 
@@ -96,6 +97,24 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
             deviceId: deviceId
         )
         SkarbSDK.setStoreKitDelegate(self)
+        // Pick up SDK-driven cache refreshes (e.g. background receipt
+        // re-validation) that don't flow through our own
+        // purchase/restore/validate callbacks. The SDK posts this only
+        // after it has just persisted a fresh snapshot, so reading the
+        // cache here returns the new value, not a stale one.
+        observerBag.add(NotificationCenter.default.addObserver(
+            forName: .skarbUserPurchaseInfoDidUpdate,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            self.userPurchasesInfo =
+                SkarbSDK.getCachedUserPurchaseInfoIfAvailable()
+            NotificationCenter.default.post(
+                name: self.userPurchasesInfoWasUpdated,
+                object: nil
+            )
+        })
         fetchUserPurchasesInfo(with: .always) { [weak self] result in
             guard let self = self else { return }
         }
