@@ -129,3 +129,8 @@ iOS purchase-info broadcast surface:
 - Added `SkarbPlugin.getCachedUserPurchasesInfo()` — synchronous-ish cache read, no network. iOS only.
 - iOS: bumped SkarbSDK pin from `'0.6.23'` to `'~> 0.6.30'` (required for the new APIs and for downstream ScreenBuilder SDK consumers).
 - iOS internal: notification name `SubscriptionValidWasUpdated` exposed as `BitlicaSkarbManagerImplementation.userPurchasesInfoDidUpdateNotification` (typed `Notification.Name`).
+
+## 3.6.1
+Android support for `onPurchaseInfoUpdated` (Android counterpart of the iOS 3.5.0 stream):
+- `SkarbPlugin.onPurchaseInfoUpdated` now emits on Android too (previously an empty stream). Bridged over the `skarb_plugin/purchase_info` EventChannel from the native SkarbSDK's new `observeUserPurchaseInfoUpdates` API; the current cached snapshot replays on subscribe. The bridge defers and retries the subscription after `initialize`, so it works even when the host subscribes before init.
+- Updated Skarb android to 2.2.4 (adds `observeUserPurchaseInfoUpdates` / `getCachedUserPurchaseInfoIfAvailable`; externally-completed purchases — restore / store-initiated / host PayFlow — refresh the cache when initialized with `isObservable: true`).

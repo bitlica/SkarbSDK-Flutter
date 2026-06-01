@@ -7,11 +7,11 @@ import com.bitlica.skarbsdk.model.SKBroker
 import com.bitlica.skarbsdk.model.SKOfferPackage
 import com.bitlica.skarbsdk.model.SKOfferings
 import com.bitlica.skarbsdk.model.SKRefreshPolicy
-import com.bitlica.skarbsdk.model.SKUserPurchaseInfo
 import com.bitlica.skarbsdk.model.SKOneTimePurchase
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -27,6 +27,10 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var methodChannel: MethodChannel
 
+    /// Broadcasts cached user-purchase-info snapshots to Dart (`onPurchaseInfoUpdated`).
+    private var purchaseInfoEventChannel: EventChannel? = null
+    private var purchaseInfoBridge: PurchaseInfoEventBridge? = null
+
     private lateinit var application: Application
     private var activity: Activity? = null
 
@@ -34,6 +38,11 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         application = flutterPluginBinding.applicationContext as Application
         methodChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin")
         methodChannel.setMethodCallHandler(this)
+        purchaseInfoBridge = PurchaseInfoEventBridge()
+        purchaseInfoEventChannel =
+            EventChannel(flutterPluginBinding.binaryMessenger, "skarb_plugin/purchase_info").apply {
+                setStreamHandler(purchaseInfoBridge)
+            }
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -57,6 +66,10 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val isObservable = call.argument<Boolean?>("isObservable") ?: false
                 SkarbSDK.isLoggingEnabled = true
                 SkarbSDK.initialize(application, clientKey!!, isObservable, deviceId, amplitudeApiKey)
+                // Dart may have subscribed to the purchase-info stream before this
+                // init landed; (re)attach now that SkarbSDK is ready. Mirrors the iOS
+                // bridge's `attach(manager:)` call in its initialize handler.
+                purchaseInfoBridge?.subscribeIfPossible()
                 result.success(null)
             }
 
@@ -301,6 +314,9 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
+        purchaseInfoEventChannel?.setStreamHandler(null)
+        purchaseInfoEventChannel = null
+        purchaseInfoBridge = null
     }
 
     private fun skOfferingsToJson(offerings: SKOfferings): Map<String, Any> {
@@ -385,32 +401,6 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
         val currency = offerPackage.storeProduct.currency
         return formatPrice(dailyPrice, currency)
-    }
-
-    private fun purchaseInfoToJson(purchaseInfo: SKUserPurchaseInfo): MutableMap<String, Any> {
-        return mutableMapOf(
-            "environment" to purchaseInfo.environment,
-            "purchasedSubscriptions" to purchaseInfo.purchasedSubscriptions.map { subscription ->
-                mapOf(
-                    "transactionID" to subscription.transactionId,
-                    "originalTransactionID" to subscription.originalTransactionId,
-                    "expiryDate" to subscription.expiryDate.time.toDouble() / 1000,
-                    "productID" to subscription.productId,
-                    "quantity" to subscription.quantity,
-                    "introOfferPeriod" to subscription.introOfferPeriod,
-                    "trialPeriod" to subscription.trialPeriod,
-                    "renewalInfo" to subscription.renewalInfo,
-                )
-            },
-            "onetimePurchases" to purchaseInfo.oneTimePurchases.map { purchase ->
-                mapOf(
-                    "transactionID" to purchase.transactionId,
-                    "purchaseDate" to purchase.purchaseDate.time.toDouble() / 1000,
-                    "productID" to purchase.productId,
-                    "quantity" to purchase.quantity,
-                )
-            }
-        )
     }
 
     private fun unconsumedOneTimePurchasesResultToJson(unconsumedOneTimePurchases: List<SKOneTimePurchase>): Map<String, Any> {
