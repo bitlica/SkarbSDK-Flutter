@@ -40,14 +40,15 @@ class SkarbPlugin {
   /// to wait for the next purchase to learn the state. Emits `null` if
   /// the cache is empty / cannot be decoded.
   ///
-  /// **iOS only.** On Android (no native StreamHandler) returns an empty
-  /// stream — Android already exposes everything through the existing
-  /// imperative methods.
+  /// **iOS + Android.** Both platforms bridge native cache updates over the
+  /// `skarb_plugin/purchase_info` EventChannel. On Android, external-purchase
+  /// detection (restore / store-initiated / host PayFlow) requires the SDK to be
+  /// initialized with `isObservable: true`. Other platforms return an empty stream.
   ///
   /// Mirrors Cleaner's
   /// `SubscriptionService.userPurchasesInfoWasUpdated` observation pattern.
   static Stream<SkarbPurchaseInfo?> get onPurchaseInfoUpdated {
-    if (!Platform.isIOS) {
+    if (!Platform.isIOS && !Platform.isAndroid) {
       return _onPurchaseInfoUpdated ??= const Stream<SkarbPurchaseInfo?>.empty();
     }
     return _onPurchaseInfoUpdated ??= _eventChannel
