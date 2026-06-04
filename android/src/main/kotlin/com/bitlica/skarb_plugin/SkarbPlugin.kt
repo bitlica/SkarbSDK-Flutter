@@ -343,6 +343,23 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             },
                             // TODO: Determine if this is a trial
                             "is_trial" to skOfferPackage.storeProduct.hasTrial,
+                            // Raw attributes for paywall tag resolution (typed at the
+                            // screen-builder consumer). iOS sends the same keys.
+                            "price_micros" to skOfferPackage.storeProduct.priceMicros,
+                            "currency_code" to skOfferPackage.storeProduct.currency,
+                            // Note: on Android, currency_symbol reflects device locale, not store locale.
+                            // iOS uses store locale via priceLocale. For truly store-consistent symbols,
+                            // format via price_locale + price_micros, or use pre-formatted price_string.
+                            "currency_symbol" to currencySymbolFor(skOfferPackage.storeProduct.currency),
+                            // Locale Google Play / the plugin formats prices in (device
+                            // default), so the consumer can reformat derived prices alike.
+                            "price_locale" to java.util.Locale.getDefault().toLanguageTag(),
+                            "period_unit" to isoPeriodUnit(skOfferPackage.storeProduct.subsBillingPeriod),
+                            "period_count" to isoPeriodCount(skOfferPackage.storeProduct.subsBillingPeriod),
+                            "intro_price_micros" to skOfferPackage.storeProduct.introPhase?.priceMicros,
+                            "intro_payment_mode" to introPaymentMode(skOfferPackage),
+                            "intro_period_unit" to skOfferPackage.storeProduct.introPhase?.let { isoPeriodUnit(it.billingPeriod) },
+                            "intro_period_count" to skOfferPackage.storeProduct.introPhase?.let { isoPeriodCount(it.billingPeriod) },
                         )
                     }
                 )
@@ -366,6 +383,53 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         numberFormat.currency = Currency.getInstance(currency)
         return numberFormat.format(price)
     }
+
+    /**
+     * Currency symbol for the given code. Extracted from NumberFormat.getCurrencyInstance()
+     * to match the locale used for formatting price_string. Note: on Android, this reflects
+     * the device's locale, not the store's locale (unlike iOS). For cross-platform consistency,
+     * consumers should prefer formatting via `price_locale` + `price_micros` when the symbol
+     * must be store-localized, or use the pre-formatted `price_string`.
+     */
+    private fun currencySymbolFor(currency: String): String? =
+        try {
+            val numberFormat = NumberFormat.getCurrencyInstance()
+            numberFormat.currency = Currency.getInstance(currency)
+            val formatted = numberFormat.format(1.0)
+            // Extract symbol by removing digits and decimal/thousands separators
+            formatted.replace(Regex("[0-9.,\\u00A0]"), "").trim().takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            null
+        }
+
+    /** Parse the unit of a single-component ISO-8601 duration ("P1W" → "week"). */
+    private fun isoPeriodUnit(iso: String?): String? {
+        if (iso.isNullOrEmpty()) return null
+        return when (iso.last()) {
+            'D' -> "day"
+            'W' -> "week"
+            'M' -> "month"
+            'Y' -> "year"
+            else -> null
+        }
+    }
+
+    /** Parse the count of a single-component ISO-8601 duration ("P3D" → 3). */
+    private fun isoPeriodCount(iso: String?): Int? {
+        if (iso.isNullOrEmpty()) return null
+        return iso.filter { it.isDigit() }.toIntOrNull()
+    }
+
+    /**
+     * iOS `SKProductDiscount.PaymentMode` parity. Google Play does not expose
+     * pay-as-you-go vs pay-up-front, so a paid intro maps to "pay_as_you_go".
+     */
+    private fun introPaymentMode(pkg: SKOfferPackage): String? =
+        when {
+            pkg.storeProduct.hasTrial -> "free_trial"
+            pkg.storeProduct.introPhase != null -> "pay_as_you_go"
+            else -> null
+        }
 
     private fun monthlyPrice(offerPackage: SKOfferPackage): String {
         val totalPrice = offerPackage.storeProduct.priceAsDouble
