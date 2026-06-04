@@ -306,6 +306,20 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 }
             }
 
+            "setProfileId" -> {
+                try {
+                    val profileId = call.argument<String?>("profileId")
+                    SkarbSDK.setObfuscatedProfileId(profileId)
+                    result.success(null)
+                } catch (e: Exception) {
+                    result.error(
+                        "Error",
+                        e.message,
+                        null
+                    )
+                }
+            }
+
             else -> {
                 result.notImplemented()
             }

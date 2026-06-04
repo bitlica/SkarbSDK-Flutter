@@ -134,3 +134,7 @@ iOS purchase-info broadcast surface:
 Android support for `onPurchaseInfoUpdated` (Android counterpart of the iOS 3.5.0 stream):
 - `SkarbPlugin.onPurchaseInfoUpdated` now emits on Android too (previously an empty stream). Bridged over the `skarb_plugin/purchase_info` EventChannel from the native SkarbSDK's new `observeUserPurchaseInfoUpdates` API; the current cached snapshot replays on subscribe. The bridge defers and retries the subscription after `initialize`, so it works even when the host subscribes before init.
 - Updated Skarb android to 2.2.4 (adds `observeUserPurchaseInfoUpdates` / `getCachedUserPurchaseInfoIfAvailable`; externally-completed purchases — restore / store-initiated / host PayFlow — refresh the cache when initialized with `isObservable: true`).
+
+## 3.6.2
+Added `setProfileId()` method to expose `setObfuscatedProfileId` from Android SDK
+Updated Skarb android to 2.2.5

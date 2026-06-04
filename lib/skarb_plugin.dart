@@ -263,6 +263,16 @@ class SkarbPlugin {
     });
   }
 
+  static Future<void> setProfileId(String? profileId) async {
+    return _measure('setProfileId', () async {
+      if (Platform.isAndroid) {
+        await _methodChannel.invokeMethod('setProfileId', {
+          'profileId': profileId,
+        });
+      }
+    });
+  }
+
   /// Method may throw a SkarbException
   static Future<SkarbPurchaseInfo?> fetchUserPurchasesInfo() async {
     return _measure('fetchUserPurchasesInfo', () async {
