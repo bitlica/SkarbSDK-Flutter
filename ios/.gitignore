@@ -36,3 +36,11 @@ Icon?
 /Flutter/Generated.xcconfig
 /Flutter/ephemeral/
 /Flutter/flutter_export_environment.sh
+
+# Swift Package Manager — local artifacts of the plugin's SPM package.
+# Generated when the package is resolved/opened standalone in Xcode. The host
+# app resolves its own dependency graph (and writes its own Package.resolved),
+# so these are not authoritative here — keep them out of version control.
+skarb_plugin/.build/
+skarb_plugin/.swiftpm/
+skarb_plugin/Package.resolved
