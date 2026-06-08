@@ -39,6 +39,16 @@ class SKOfferings {
           introductoryPriceString:
               packageJson['introductory_price_string'] as String?,
           isTrial: packageJson['is_trial'] as bool,
+          priceMicros: (packageJson['price_micros'] as num?)?.toInt(),
+          currencyCode: packageJson['currency_code'] as String?,
+          currencySymbol: packageJson['currency_symbol'] as String?,
+          priceLocale: packageJson['price_locale'] as String?,
+          periodUnit: packageJson['period_unit'] as String?,
+          periodCount: (packageJson['period_count'] as num?)?.toInt(),
+          introPriceMicros: (packageJson['intro_price_micros'] as num?)?.toInt(),
+          introPaymentMode: packageJson['intro_payment_mode'] as String?,
+          introPeriodUnit: packageJson['intro_period_unit'] as String?,
+          introPeriodCount: (packageJson['intro_period_count'] as num?)?.toInt(),
         );
       }).toList();
 
@@ -105,6 +115,38 @@ class SKOfferPackage {
   final String? introductoryPriceString;
   final bool isTrial;
 
+  // --- Raw store attributes (wire-generic primitives; consumers type them). ---
+  /// Raw price in micros (price * 1_000_000).
+  final int? priceMicros;
+
+  /// ISO-4217 currency code (e.g. "USD").
+  final String? currencyCode;
+
+  /// Locale currency symbol (e.g. "$").
+  final String? currencySymbol;
+
+  /// Locale used to format the price (e.g. "pl_PL", "en-US") — for reformatting
+  /// derived prices with the same CLDR rules.
+  final String? priceLocale;
+
+  /// Subscription period unit: "day" | "week" | "month" | "year".
+  final String? periodUnit;
+
+  /// Subscription period length in [periodUnit]s.
+  final int? periodCount;
+
+  /// Raw introductory-offer price in micros (null when there is no intro).
+  final int? introPriceMicros;
+
+  /// Intro payment mode: "free_trial" | "pay_as_you_go" | "pay_up_front".
+  final String? introPaymentMode;
+
+  /// Intro period unit ("day" | "week" | "month" | "year").
+  final String? introPeriodUnit;
+
+  /// Intro period length in [introPeriodUnit]s.
+  final int? introPeriodCount;
+
   SKOfferPackage({
     required this.id,
     required this.description,
@@ -116,6 +158,16 @@ class SKOfferPackage {
     required this.monthlyPriceString,
     required this.introductoryPriceString,
     required this.isTrial,
+    this.priceMicros,
+    this.currencyCode,
+    this.currencySymbol,
+    this.priceLocale,
+    this.periodUnit,
+    this.periodCount,
+    this.introPriceMicros,
+    this.introPaymentMode,
+    this.introPeriodUnit,
+    this.introPeriodCount,
   });
 }
 

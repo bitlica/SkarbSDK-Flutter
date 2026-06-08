@@ -139,3 +139,16 @@ Android support for `onPurchaseInfoUpdated` (Android counterpart of the iOS 3.5.
 - Added `setProfileId()` method to expose `setObfuscatedProfileId` from Android SDK
 - Updated Skarb android to 2.2.5
 - iOS: bumped SkarbSDK to `'~> 0.6.31'`
+
+## 3.7.0
+- Updated Skarb android to `2.2.6` — `getIntroductoryPhase` now also detects free-trial intro phases (`recurrenceMode == 3` / NON_RECURRING), so trial-only subscriptions expose `introPriceMicros` / `introPeriodUnit` / `introPeriodCount` and `introPaymentMode == "free_trial"` (previously only the `hasTrial` flag was set, with no intro period data).
+- All new fields are optional (nullable) and backward-compatible.
+- iOS: Bumped `SkarbSDK` pod requirement to `~> 0.6.30` (min iOS 12.0, updated in podspec).
+- `introPaymentMode` — intro offer type ("free_trial" / "pay_as_you_go" / "pay_up_front") for paywall UI differentiation.
+- `currencySymbol` — currency symbol (extracted from NumberFormat on Android; iOS uses store locale). **Note:** Android uses device locale (Google Play limitation); iOS uses App Store's storefront locale. For store-consistent symbols, use `priceLocale` + `priceMicros` or the pre-formatted `priceString`.
+- `priceLocale` — locale identifier used to format prices (device locale on Android, store locale on iOS).
+- Subscription & intro period fields — `periodUnit`, `periodCount`, `introPeriodUnit`, `introPeriodCount` for ISO-8601 period parsing ("day"/"week"/"month"/"year").
+- `currencyCode` — ISO-4217 currency code from the store (trustworthy on both platforms).
+- `priceMicros` — raw price in micro-units (price × 1,000,000) for custom formatting.
+- Added 10 new properties for accessing raw product data: `priceMicros`, `currencyCode`, `currencySymbol`, `priceLocale`, `periodUnit`, `periodCount`, `introPriceMicros`, `introPaymentMode`, `introPeriodUnit`, `introPeriodCount`.
+Expanded `SKOfferPackage` API with raw store attributes for paywall builders:

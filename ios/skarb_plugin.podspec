@@ -19,6 +19,9 @@ A new Flutter plugin project.
   # series until a coordinated bump to 0.7. New API surface (stream of
   # cached purchase info + sync getter) requires SkarbSDK >= 0.6.31.
   s.dependency 'SkarbSDK', '~> 0.6.31'
+  # Must be >= SkarbSDK's min deployment target (12.0), otherwise Flutter's pod
+  # install rejects the plugin ("requires a higher minimum iOS deployment version
+  # than the plugin's reported minimum version").
   s.platform = :ios, '12.0'
 
   # Flutter.framework does not contain a i386 slice.
