@@ -136,5 +136,6 @@ Android support for `onPurchaseInfoUpdated` (Android counterpart of the iOS 3.5.
 - Updated Skarb android to 2.2.4 (adds `observeUserPurchaseInfoUpdates` / `getCachedUserPurchaseInfoIfAvailable`; externally-completed purchases — restore / store-initiated / host PayFlow — refresh the cache when initialized with `isObservable: true`).
 
 ## 3.6.2
-Added `setProfileId()` method to expose `setObfuscatedProfileId` from Android SDK
-Updated Skarb android to 2.2.5
+- Added `setProfileId()` method to expose `setObfuscatedProfileId` from Android SDK
+- Updated Skarb android to 2.2.5
+- iOS: bumped SkarbSDK to `'~> 0.6.31'`
