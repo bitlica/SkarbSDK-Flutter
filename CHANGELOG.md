@@ -152,3 +152,6 @@ Android support for `onPurchaseInfoUpdated` (Android counterpart of the iOS 3.5.
 - `priceMicros` — raw price in micro-units (price × 1,000,000) for custom formatting.
 - Added 10 new properties for accessing raw product data: `priceMicros`, `currencyCode`, `currencySymbol`, `priceLocale`, `periodUnit`, `periodCount`, `introPriceMicros`, `introPaymentMode`, `introPeriodUnit`, `introPeriodCount`.
 Expanded `SKOfferPackage` API with raw store attributes for paywall builders:
+
+## 3.7.1
+- Updated Skarb android to `2.2.8` (from `2.2.6`). No Dart or Kotlin API changes on the plugin side.
