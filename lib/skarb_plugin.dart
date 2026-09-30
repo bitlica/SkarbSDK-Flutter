@@ -115,6 +115,26 @@ class SkarbPlugin {
     });
   }
 
+  /// Switches Skarb to a new install_id, as on a fresh install, and returns
+  /// the id now in use. When [newDeviceId] is `null` the native SDK
+  /// generates one.
+  ///
+  /// Analytics one-time commands are reset. Purchase data is kept: queued
+  /// payment commands are still delivered with their original fields, and
+  /// the cached purchase info stays, so a subscriber keeps access. Cached
+  /// [offerings] are kept too: [loadOfferings] replaces them with the new
+  /// id's.
+  ///
+  /// The caller must re-send [sendAFSource] / [sendTest] afterwards.
+  static Future<String?> resetDeviceId({String? newDeviceId}) async {
+    return _measure('resetDeviceId', () async {
+      return _methodChannel.invokeMethod<String>(
+        'resetDeviceId',
+        {'newDeviceId': newDeviceId},
+      );
+    });
+  }
+
   static Future<List<SkarbOnetimePurchase>>
       getUnconsumedOneTimePurchases() async {
     return _measure('getUnconsumedOneTimePurchases', () async {

@@ -54,6 +54,10 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
             getReceiptBase64(result: result)
         case "getSkarbDeviceId":
             result(getSkarbDeviceId())
+        case "resetDeviceId":
+            let args = call.arguments as? [String: Any]
+            let newDeviceId = args?["newDeviceId"] as? String
+            result(SkarbSDK.resetDeviceId(newDeviceId: newDeviceId))
         case "initialize":
             SkarbSDK.isLoggingEnabled = true
             var deviceId: String? = nil
