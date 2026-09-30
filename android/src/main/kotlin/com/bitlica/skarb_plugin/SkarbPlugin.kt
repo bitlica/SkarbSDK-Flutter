@@ -78,6 +78,21 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 result.success(deviceId)
             }
 
+            "resetDeviceId" -> {
+                try {
+                    val newDeviceId = call.argument<String?>("newDeviceId")
+                    SkarbSDK.resetDeviceId(newDeviceId) { deviceId ->
+                        result.success(deviceId)
+                    }
+                } catch (e: Exception) {
+                    result.error(
+                        "Error",
+                        e.message,
+                        null
+                    )
+                }
+            }
+
             "sendTest" -> {
                 val name = call.argument<String>("name")
                 val group = call.argument<String>("group")
