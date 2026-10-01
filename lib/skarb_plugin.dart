@@ -149,7 +149,8 @@ class SkarbPlugin {
   /// Amplitude's events not uploaded yet.
   /// Nothing already delivered is erased on the server.
   ///
-  /// Back on, the advertising id is collected again. The caller must re-send
+  /// Back on, the advertising id, Google Play billing region and Apple Search
+  /// Ads attribution are collected again. The caller must re-send
   /// [sendAFSource] / [sendTest] if they are needed.
   ///
   /// May be called before [initialize]: [initialize] then applies it, unless
