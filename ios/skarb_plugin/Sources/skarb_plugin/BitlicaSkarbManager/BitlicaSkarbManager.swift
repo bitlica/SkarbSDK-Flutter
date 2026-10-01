@@ -89,12 +89,14 @@ public class BitlicaSkarbManagerImplementation: BitlicaSkarbManager {
     public init(
         clientId: String,
         isObservable: Bool,
-        deviceId: String?
+        deviceId: String?,
+        isAnalyticsEnabled: Bool? = nil
     ) {
         SkarbSDK.initialize(
             clientId: clientId,
             isObservable: isObservable,
-            deviceId: deviceId
+            deviceId: deviceId,
+            isAnalyticsEnabled: isAnalyticsEnabled
         )
         SkarbSDK.setStoreKitDelegate(self)
         // Pick up SDK-driven cache refreshes (e.g. background receipt

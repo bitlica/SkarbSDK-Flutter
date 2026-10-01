@@ -15,10 +15,10 @@ A new Flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'skarb_plugin/Sources/skarb_plugin/**/*'
   s.dependency 'Flutter'
-  # Pessimistic pin (~> 0.6.33 == >= 0.6.33, < 0.7) — keep within the 0.6
-  # series until a coordinated bump to 0.7. New API surface (resetDeviceId)
-  # requires SkarbSDK >= 0.6.33.
-  s.dependency 'SkarbSDK', '~> 0.6.33'
+  # Pessimistic pin (~> 0.6.34 == >= 0.6.34, < 0.7) — keep within the 0.6
+  # series until a coordinated bump to 0.7. New API surface
+  # (setAnalyticsEnabled) requires SkarbSDK >= 0.6.34.
+  s.dependency 'SkarbSDK', '~> 0.6.34'
   # Must be >= SkarbSDK's min deployment target (12.0), otherwise Flutter's pod
   # install rejects the plugin ("requires a higher minimum iOS deployment version
   # than the plugin's reported minimum version").
