@@ -62,6 +62,7 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
             SkarbSDK.isLoggingEnabled = true
             var deviceId: String? = nil
             var isObservable = false
+            var isAnalyticsEnabled: Bool? = nil
             if let args = call.arguments as? [String: Any] {
                 if let id = args["deviceId"] as? String {
                     deviceId = id
@@ -69,14 +70,26 @@ public class SkarbPlugin: NSObject, FlutterPlugin {
                 if let isObservableArg = args["isObservable"] as? Bool {
                     isObservable = isObservableArg
                 }
+                if let isAnalyticsEnabledArg = args["isAnalyticsEnabled"] as? Bool {
+                    isAnalyticsEnabled = isAnalyticsEnabledArg
+                }
             }
             manager = BitlicaSkarbManagerImplementation(
                 clientId: "aifriend",
                 isObservable: isObservable,
-                deviceId: deviceId
+                deviceId: deviceId,
+                isAnalyticsEnabled: isAnalyticsEnabled
             )
             manager?.delegate = self
             if let manager { purchaseInfoBridge.attach(manager: manager) }
+            result(nil)
+        case "setAnalyticsEnabled":
+            guard let args = call.arguments as? [String: Any],
+                  let enabled = args["enabled"] as? Bool else {
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments provided", details: nil))
+                return
+            }
+            SkarbSDK.setAnalyticsEnabled(enabled)
             result(nil)
         case "fetchUserPurchasesInfo":
             manager?.fetchUserPurchasesInfo(with: .always) { fetchResult in

@@ -24,7 +24,7 @@ let package = Package(
         // paths stay version-aligned during migration.
         .package(
             url: "https://github.com/bitlica/SkarbSDK-iOS.git",
-            from: "0.6.33"
+            from: "0.6.34"
         )
     ],
     targets: [

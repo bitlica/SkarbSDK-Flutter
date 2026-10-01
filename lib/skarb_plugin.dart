@@ -135,6 +135,34 @@ class SkarbPlugin {
     });
   }
 
+  /// Applies the user's analytics consent, e.g. a revocation from the app's
+  /// settings. The native SDK saves it, so it also holds for the following
+  /// launches. On by default.
+  ///
+  /// Off, Skarb keeps what purchases need (install, purchase verification)
+  /// and stops the rest: [sendAFSource] and [sendTest] are ignored, no
+  /// GAID / IDFA, Google Play billing region or Apple Search Ads attribution
+  /// is collected, device-level identifiers are left out of the install and
+  /// purchase requests, the iOS SDK's error logs are not sent, and the
+  /// Android SDK's Amplitude is switched to opt-out. Queued attribution,
+  /// test, advertising id, region and log commands are dropped, and so are
+  /// Amplitude's events not uploaded yet.
+  /// Nothing already delivered is erased on the server.
+  ///
+  /// Back on, the advertising id is collected again. The caller must re-send
+  /// [sendAFSource] / [sendTest] if they are needed.
+  ///
+  /// May be called before [initialize]: [initialize] then applies it, unless
+  /// given its own `isAnalyticsEnabled`.
+  static Future<void> setAnalyticsEnabled(bool enabled) async {
+    return _measure('setAnalyticsEnabled', () async {
+      await _methodChannel.invokeMethod(
+        'setAnalyticsEnabled',
+        {'enabled': enabled},
+      );
+    });
+  }
+
   static Future<List<SkarbOnetimePurchase>>
       getUnconsumedOneTimePurchases() async {
     return _measure('getUnconsumedOneTimePurchases', () async {
@@ -158,11 +186,16 @@ class SkarbPlugin {
     });
   }
 
+  /// [isAnalyticsEnabled] is the user's analytics consent, see
+  /// [setAnalyticsEnabled]. Pass it on every launch if consent can change
+  /// while the app is not running; `null` keeps the last value set (on by
+  /// default).
   static Future<void> initialize({
     required String? deviceId,
     required String amplitudeApiKey,
     String? androidClientKey,
     bool isObservable = false,
+    bool? isAnalyticsEnabled,
   }) async {
     return _measure('initialize', () async {
       logger?.logEvent(
@@ -175,10 +208,14 @@ class SkarbPlugin {
           'clientKey': androidClientKey ?? 'aifriendandroid',
           'amplitude_api_key': amplitudeApiKey,
           'isObservable': isObservable,
+          'isAnalyticsEnabled': isAnalyticsEnabled,
         });
       } else if (Platform.isIOS) {
-        await _methodChannel.invokeMethod(
-            'initialize', {'deviceId': deviceId, 'isObservable': isObservable});
+        await _methodChannel.invokeMethod('initialize', {
+          'deviceId': deviceId,
+          'isObservable': isObservable,
+          'isAnalyticsEnabled': isAnalyticsEnabled,
+        });
       }
       logger?.logEvent(
         eventType: SkarbEventType.info,

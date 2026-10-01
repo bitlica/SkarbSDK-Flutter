@@ -64,8 +64,9 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val deviceId = call.argument<String>("deviceId")
                 val amplitudeApiKey = call.argument<String>("amplitude_api_key")
                 val isObservable = call.argument<Boolean?>("isObservable") ?: false
+                val isAnalyticsEnabled = call.argument<Boolean?>("isAnalyticsEnabled")
                 SkarbSDK.isLoggingEnabled = true
-                SkarbSDK.initialize(application, clientKey!!, isObservable, deviceId, amplitudeApiKey)
+                SkarbSDK.initialize(application, clientKey!!, isObservable, deviceId, amplitudeApiKey, isAnalyticsEnabled)
                 // Dart may have subscribed to the purchase-info stream before this
                 // init landed; (re)attach now that SkarbSDK is ready. Mirrors the iOS
                 // bridge's `attach(manager:)` call in its initialize handler.
@@ -91,6 +92,12 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         null
                     )
                 }
+            }
+
+            "setAnalyticsEnabled" -> {
+                val enabled = call.argument<Boolean>("enabled")
+                SkarbSDK.setAnalyticsEnabled(enabled!!)
+                result.success(null)
             }
 
             "sendTest" -> {
