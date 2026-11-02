@@ -49,6 +49,8 @@ class SKOfferings {
           introPaymentMode: packageJson['intro_payment_mode'] as String?,
           introPeriodUnit: packageJson['intro_period_unit'] as String?,
           introPeriodCount: (packageJson['intro_period_count'] as num?)?.toInt(),
+          introNumberOfPeriods:
+              (packageJson['intro_number_of_periods'] as num?)?.toInt(),
         );
       }).toList();
 
@@ -147,6 +149,11 @@ class SKOfferPackage {
   /// Intro period length in [introPeriodUnit]s.
   final int? introPeriodCount;
 
+  /// How many intro periods the offer lasts: `numberOfPeriods` on iOS,
+  /// `billingCycleCount` on Android. Pay-as-you-go "$0.99/month for 3 months"
+  /// is 1 month × 3; a free trial and pay-up-front are 1.
+  final int? introNumberOfPeriods;
+
   SKOfferPackage({
     required this.id,
     required this.description,
@@ -168,6 +175,7 @@ class SKOfferPackage {
     this.introPaymentMode,
     this.introPeriodUnit,
     this.introPeriodCount,
+    this.introNumberOfPeriods,
   });
 }
 
