@@ -396,6 +396,7 @@ class SkarbPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             "intro_payment_mode" to introPaymentMode(skOfferPackage),
                             "intro_period_unit" to skOfferPackage.storeProduct.introPhase?.let { isoPeriodUnit(it.billingPeriod) },
                             "intro_period_count" to skOfferPackage.storeProduct.introPhase?.let { isoPeriodCount(it.billingPeriod) },
+                            "intro_number_of_periods" to skOfferPackage.storeProduct.introPhase?.billingCycleCount,
                         )
                     }
                 )

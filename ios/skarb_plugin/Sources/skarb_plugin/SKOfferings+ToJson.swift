@@ -72,6 +72,7 @@ extension SKOfferPackage {
                     json["intro_period_unit"] = unit
                 }
                 json["intro_period_count"] = intro.subscriptionPeriod.numberOfUnits
+                json["intro_number_of_periods"] = intro.numberOfPeriods
             }
         }
 

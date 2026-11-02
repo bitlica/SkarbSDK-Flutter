@@ -166,3 +166,6 @@ Expanded `SKOfferPackage` API with raw store attributes for paywall builders:
 
 ## 3.7.4
 - Updated Skarb android to `2.2.11` (from `2.2.10`). Subscriptions bought outside the app's purchase flow — promo codes redeemed in Google Play, pending payments that complete later, or a purchase whose acknowledge didn't finish — are now acknowledged on the next purchase sync (app start, foreground, `restorePurchases`, or as soon as Google Play reports them while the app is open). Before, Google Play kept showing them as unconfirmed and refunded and revoked them after 3 days. Not in observer mode (`isObservable: true`), where the app acknowledges purchases itself. No Dart or Kotlin API changes on the plugin side.
+
+## 3.7.5
+- Added `SKOfferPackage.introNumberOfPeriods` (`intro_number_of_periods`): how many intro periods the offer lasts — `numberOfPeriods` on iOS, `billingCycleCount` on Android. Pay-as-you-go "$0.99/month for 3 months" reports `introPeriodUnit` "month", `introPeriodCount` 1 and `introNumberOfPeriods` 3, so the end of the whole intro is now known. Null when there is no intro. No native SDK changes.
